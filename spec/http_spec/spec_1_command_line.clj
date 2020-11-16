@@ -23,50 +23,39 @@
 ;; Running on port: <port>
 ;; Serving files from: <dir>
 
+(defn output-from-server [& args]
+  (let [result (apply helper/run-server args)]
+    (should= "" (:err result))
+    (should= 0 (:exit result))
+    (:out result)))
+
 (describe "Command Line"
 
-  (it "-h prints usage without starting server"
-    (let [result (helper/run-server "-h")
-          output (:out result)]
-      (should= "" (:err result))
-      (should= 0 (:exit result))
-      (should-contain (str "Usage: " (:cmd (helper/config)) " [options]") output)
-      (should-contain "  -p     Specify the port.  Default is 80." output)
-      (should-contain "  -r     Specify the root directory.  Default is the current working directory." output)
-      (should-contain "  -h     Print this help message" output)
-      (should-contain "  -x     Print the startup configuration without starting the server" output)))
-
-  (it "-x argument prints configuration without starting server"
-    (let [result (helper/run-server "-x")
-          output (:out result)]
-      (should= "" (:err result))
-      (should= 0 (:exit result))
-      (should-contain "Example Server" output)
-      (should-contain "Running on port: 80" output)
-      (should-contain (str "Serving files from: " (.getCanonicalPath (io/file "."))) output)))
-
-  (it "default port is 80"
-    (let [result (helper/run-server "-x")
-          output (:out result)]
-      (should= 0 (:exit result))
-      (should-contain "Running on port: 80" output)))
-
-  (it "default root is current directory"
-    (let [result (helper/run-server "-x")]
-      (should= 0 (:exit result))
-      (should-contain (str "Serving files from: " (.getCanonicalPath (io/file "."))) (:out result))))
-
-  (it "port can be set using the -p argument"
-    (let [result (helper/run-server "-x" "-p" "1234")]
-      (should= "" (:err result))
-      (should= 0 (:exit result))
-      (should-contain "Running on port: 1234" (:out result))))
-
-  (it "root can be set using the -r argument"
-    (let [result (helper/run-server "-x" "-r" "testroot")
-          output (:out result)]
-      (should= "" (:err result))
-      (should= 0 (:exit result))
-      (should-contain (str "Serving files from: " (.getCanonicalPath (io/file "testroot"))) output)))
+  ;(it "-h prints usage without starting server"
+  ;  (let [output (output-from-server "-h")]
+  ;    (should-contain (str "Usage: " (:cmd (helper/config)) " [options]") output)
+  ;    (should-contain "  -p     Specify the port.  Default is 80." output)
+  ;    (should-contain "  -r     Specify the root directory.  Default is the current working directory." output)
+  ;    (should-contain "  -h     Print this help message" output)
+  ;    (should-contain "  -x     Print the startup configuration without starting the server" output)))
+  ;
+  ;(it "-x argument prints configuration without starting server"
+  ;  (let [output (output-from-server "-x")]
+  ;    (should-contain "Example Server" output)
+  ;    (should-contain "Running on port: 80" output)
+  ;    (should-contain (str "Serving files from: " (.getCanonicalPath (io/file "."))) output)))
+  ;
+  ;(it "default port is 80"
+  ;  (should-contain "Running on port: 80" (output-from-server "-x")))
+  ;
+  ;(it "default root is current directory"
+  ;  (should-contain (str "Serving files from: " (.getCanonicalPath (io/file "."))) (output-from-server "-x")))
+  ;
+  ;(it "port can be set using the -p argument"
+  ;  (should-contain "Running on port: 1234" (output-from-server "-x" "-p" "1234")))
+  ;
+  ;(it "root can be set using the -r argument"
+  ;  (should-contain (str "Serving files from: " (.getCanonicalPath (io/file "testroot")))
+  ;                  (output-from-server "-x" "-r" "testroot")))
 
   )
