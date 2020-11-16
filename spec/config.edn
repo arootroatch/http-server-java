@@ -1,0 +1,4 @@
+{
+ :cmd "lein run -m http-spec.example"
+ :name "Example Server"
+ }
