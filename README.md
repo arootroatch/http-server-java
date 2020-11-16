@@ -15,13 +15,16 @@ written in any language.
  
 #### 2) Configuration
 
-The specs must be configured to run your server implementation.  
+The specs must be configured to run your server implementation.  Update the `spec/http_spec/config.edn` file with:
+
+ * `:cmd` - the command line to start your server without options
+ * `:name` - the name of your server
 
 #### 3) Execution
 
 From within this `http-spec` directory:
 
-    lein run my-config.edn  
-    
+    lein spec  
+ 
     
 ### Specification Categories

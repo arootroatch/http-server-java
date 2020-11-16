@@ -21,6 +21,17 @@
   (GET "/" [] "<h1>Hello World</h1>")
   (route/not-found "<h1>Page not found</h1>"))
 
+(defn wrap-server-header [handler]
+  (fn [request]
+    (let [response (handler request)]
+      (assoc-in response [:headers "Server"] "Example Server"))))
+
+(defn wrap-prn [handler]
+  (fn [request]
+    (let [response (handler request)]
+      (prn response)
+      response)))
+
 (defn root-handler [app root]
   (-> app
       wrap-keyword-params
@@ -29,7 +40,9 @@
       wrap-params
       (wrap-file root)
       wrap-content-type
+      wrap-server-header
       wrap-head
+      wrap-prn
       ))
 
 (defn start [config]
@@ -91,3 +104,4 @@
     (when (:usage? config) (usage config))
     (print-config config)
     (when-not (:exit? config) (start config))))
+
