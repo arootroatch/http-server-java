@@ -15,11 +15,32 @@
     [ring.middleware.resource :refer [wrap-resource]]
     [ring.middleware.file :refer [wrap-file]]
     [ring.middleware.session :refer [wrap-session]]
-    [clojure.java.io :as io]))
+    [clojure.java.io :as io]
+    [clojure.string :as str]))
 
-(defroutes app
-  (GET "/" [] "<h1>Hello World</h1>")
-  (route/not-found "<h1>Page not found</h1>"))
+(defn file-link [root parent child]
+  (let [file (io/file root parent child)
+        path (str "/" (if (str/blank? parent) child (str parent "/" child)))]
+    (if (.isDirectory file)
+      (str "<li><a href=\"/listing" path "\">" child "</a></li>")
+      (str "<li><a href=\"" path "\">" child "</a></li>"))))
+
+(defn wrap-list [items] (str "<ul>" items "</ul>"))
+
+(defn listing [root path]
+  (let [dir (io/file root path)]
+    (when (and (.exists dir) (.isDirectory dir))
+      (->> (.list dir)
+           sort
+           (map (partial file-link root path))
+           (apply str)
+           wrap-list))))
+
+(defn app [root]
+  (routes
+    (GET "/listing" [] (listing root ""))
+    (GET "/listing/:path" [path] (listing root path))
+    (route/not-found "<h1>Page not found</h1>")))
 
 (defn wrap-server-header [handler]
   (fn [request]
@@ -42,11 +63,11 @@
       wrap-content-type
       wrap-server-header
       wrap-head
-      wrap-prn
       ))
 
 (defn start [config]
-  (run-server (root-handler app (:root config)) {:port (:port config)}))
+  (let [root (:root config)]
+    (run-server (root-handler (app root) root) {:port (:port config)})))
 
 (defmulti parse-arg (fn [config] (first (:args config))))
 
