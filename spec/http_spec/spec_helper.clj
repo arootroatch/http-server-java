@@ -72,7 +72,7 @@
 
 (defn- do-stop-server []
   (assert @server-atom "Can't stop server.  None running!")
-  (Thread/sleep 1000)
+  (Thread/yield)
   (let [server @server-atom
         ^Process process (:process server)]
     (.destroyForcibly process)

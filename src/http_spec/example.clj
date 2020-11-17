@@ -1,6 +1,6 @@
 (ns http-spec.example
   (:require
-    [compojure.core :refer [defroutes routes GET]]
+    [compojure.core :refer [defroutes routes GET POST]]
     [compojure.route :as route]
     [org.httpkit.server :refer [run-server]]
     [ring.middleware.content-type :refer [wrap-content-type]]
@@ -21,11 +21,20 @@
 (defn wrap-list [items] (str "<ul>" items "</ul>"))
 
 (defn get-form [request]
-  (prn "request: " request)
-  (->> (:params request)
-       (map (fn [k v] (str k ": " v)))
-       (apply str)
-       wrap-list))
+  (str "<h2>GET Form</h2>"
+       (->> (:params request)
+            (map (fn [[k v]] (str "<li>" (name k) ": " v "</li>")))
+            (apply str)
+            wrap-list)))
+
+(defn post-form [request]
+  (let [upload (-> request :params :file)]
+    (str "<h2>POST Form</h2>"
+         "<ul>"
+         "<li>file name: " (:filename upload) "</li>"
+         "<li>content type: " (:content-type upload) "</li>"
+         "<li>file size: " (:size upload) "</li>"
+         "</ul>")))
 
 (defn file-link [root parent child]
   (let [file (io/file root parent child)
@@ -47,7 +56,8 @@
   (routes
     (GET "/listing" [] (listing root ""))
     (GET "/listing/:path" [path] (listing root path))
-    (GET "/form" [request] (get-form request))
+    (GET "/form" request (get-form request))
+    (POST "/form" request (post-form request))
     (route/not-found "<h1>Page not found</h1>")))
 
 (defn wrap-server-header [handler]
@@ -65,9 +75,9 @@
   (let [counter (atom 0)]
     (fn [request]
       (let [request (assoc request :id (swap! counter inc))]
-        (println (str/join "\t" [(str (:id request) ">") (:request-method request) (:uri request)]))
+        (println (str/join "\t" [(str (:id request) ">") (:request-method request) (:uri request) (:query-string request) (:body request)]))
         (let [response (handler request)]
-          (println (str/join "\t" [(str (:id request) "<") (:request-method request) (:uri request) (:status response)]))
+          (println (str/join "\t" [(str (:id request) "<") (:status response) (count (str (:body response)))]))
           (.flush System/out)
           response)))))
 
