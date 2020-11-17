@@ -1,4 +1,6 @@
 (ns http-spec.example
+  (:import (java.util Date)
+           (java.text SimpleDateFormat))
   (:require
     [compojure.core :refer [defroutes routes GET POST]]
     [compojure.route :as route]
@@ -19,6 +21,18 @@
     [clojure.string :as str]))
 
 (defn wrap-list [items] (str "<ul>" items "</ul>"))
+
+(def date-format (SimpleDateFormat. "yyyy-MM-dd HH:mm:ss"))
+
+(defn ping [seconds]
+  (let [start (Date.)]
+    (Thread/sleep (* seconds 1000))
+    (str "<h2>Ping</h2>"
+         "<ul>"
+         "<li>start time: " (.format date-format start) "</li>"
+         "<li>end time: " (.format date-format (Date.)) "</li>"
+         "<li>sleep seconds: " seconds "</li>"
+         "</ul>")))
 
 (defn get-form [request]
   (str "<h2>GET Form</h2>"
@@ -58,6 +72,8 @@
     (GET "/listing/:path" [path] (listing root path))
     (GET "/form" request (get-form request))
     (POST "/form" request (post-form request))
+    (GET "/ping" [] (ping 0))
+    (GET "/ping/:seconds" [seconds] (ping (Integer/parseInt seconds)))
     (route/not-found "<h1>Page not found</h1>")))
 
 (defn wrap-server-header [handler]
