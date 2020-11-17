@@ -46,5 +46,7 @@
     (let [response (client/get "http://localhost:7654/hello.pdf")]
       (should= (slurp (io/file "testroot/hello.pdf")) (:body response))
       (should= "application/pdf" (get-in response [:headers "Content-Type"]))))
-
 )
+
+
+

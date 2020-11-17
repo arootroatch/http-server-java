@@ -18,14 +18,21 @@
     [clojure.java.io :as io]
     [clojure.string :as str]))
 
+(defn wrap-list [items] (str "<ul>" items "</ul>"))
+
+(defn get-form [request]
+  (prn "request: " request)
+  (->> (:params request)
+       (map (fn [k v] (str k ": " v)))
+       (apply str)
+       wrap-list))
+
 (defn file-link [root parent child]
   (let [file (io/file root parent child)
         path (str "/" (if (str/blank? parent) child (str parent "/" child)))]
     (if (.isDirectory file)
       (str "<li><a href=\"/listing" path "\">" child "</a></li>")
       (str "<li><a href=\"" path "\">" child "</a></li>"))))
-
-(defn wrap-list [items] (str "<ul>" items "</ul>"))
 
 (defn listing [root path]
   (let [dir (io/file root path)]
@@ -40,6 +47,7 @@
   (routes
     (GET "/listing" [] (listing root ""))
     (GET "/listing/:path" [path] (listing root path))
+    (GET "/form" [request] (get-form request))
     (route/not-found "<h1>Page not found</h1>")))
 
 (defn wrap-server-header [handler]
@@ -47,11 +55,21 @@
     (let [response (handler request)]
       (assoc-in response [:headers "Server"] "Example Server"))))
 
-(defn wrap-prn [handler]
-  (fn [request]
-    (let [response (handler request)]
-      (prn response)
-      response)))
+;(defn wrap-prn [handler]
+;  (fn [request]
+;    (let [response (handler request)]
+;      (prn response)
+;      response)))
+
+(defn wrap-log-requests [handler]
+  (let [counter (atom 0)]
+    (fn [request]
+      (let [request (assoc request :id (swap! counter inc))]
+        (println (str/join "\t" [(str (:id request) ">") (:request-method request) (:uri request)]))
+        (let [response (handler request)]
+          (println (str/join "\t" [(str (:id request) "<") (:request-method request) (:uri request) (:status response)]))
+          (.flush System/out)
+          response)))))
 
 (defn root-handler [app root]
   (-> app
@@ -63,6 +81,7 @@
       wrap-content-type
       wrap-server-header
       wrap-head
+      wrap-log-requests
       ))
 
 (defn start [config]
@@ -124,5 +143,9 @@
   (let [config (parse-args (assoc default-config :args args))]
     (when (:usage? config) (usage config))
     (print-config config)
-    (when-not (:exit? config) (start config))))
+    (try
+      (when-not (:exit? config)
+        (start config))
+      (catch Throwable e
+        (.printStackTrace e)))))
 
