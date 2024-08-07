@@ -26,6 +26,13 @@ public class MyServerTest {
     assertTrue(outContent.toString().contains("Serving files from:"));
   }
 
+  @Test
+  void specifyPort() throws IOException {
+    String[] args = {"-p", "1234"};
+    MyServer.main(args);
+    assertTrue(outContent.toString().contains("Running on port: 1234"));
+  }
+
   @AfterAll
   static void teardown() {
     System.setOut(originalOut);
