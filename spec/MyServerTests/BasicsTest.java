@@ -1,10 +1,15 @@
 package MyServerTests;
+
 import MyServer.MyServer;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.net.HttpURLConnection;
 
+import static MyServerTests.URLConnection.connectToURL;
+import static MyServerTests.URLConnection.parseResponse;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class BasicsTest {
@@ -12,11 +17,11 @@ public class BasicsTest {
 
   @BeforeEach
   void setup() {
-    server  = new MyServer(1234, "testroot");
+    server = new MyServer(1234, "testroot");
   }
 
   @Test
-  void start(){
+  void start() {
     assertFalse(server.isRunning());
     assertNull(server.getThread());
     server.start();
@@ -65,7 +70,7 @@ public class BasicsTest {
 //    StringBuilder response = parseResponse(connection.getInputStream());
     int responseCode = connection.getResponseCode();
 
-//    assertTrue(response.toString().contains("<h1>Hello, World!</h1>"));
+//    assertTrue(response.toString().contains("<h1>Error 404: Not Found</h1>"));
     assertEquals(404, responseCode);
   }
 
@@ -79,27 +84,7 @@ public class BasicsTest {
   }
 
   @AfterEach
-  void teardown(){
+  void teardown() {
     server.stop();
   }
-
-
-  private HttpURLConnection connectToURL(String s) throws IOException {
-    URL url = URI.create(s).toURL();
-    return (HttpURLConnection) url.openConnection();
-  }
-
-  private StringBuilder parseResponse(InputStream inputStream) throws IOException {
-    InputStreamReader isr = new InputStreamReader(inputStream);
-    BufferedReader br = new BufferedReader(isr);
-    StringBuilder request = new StringBuilder();
-    String line = br.readLine();
-
-    while (!line.isBlank()) {
-      request.append(line).append("\r\n");
-      line = br.readLine();
-    }
-    return request;
-  }
-
 }

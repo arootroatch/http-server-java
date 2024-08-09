@@ -3,6 +3,8 @@ package MyServer;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
+import java.util.Objects;
 
 import static MyServer.Print.printConfig;
 
@@ -56,7 +58,8 @@ public class MyServer {
     StringBuilder request = new StringBuilder();
     String line = br.readLine();
 
-    while (!line.isBlank()) {
+    while (line != null) {
+      if (line.isBlank()) break;
       request.append(line).append("\r\n");
       line = br.readLine();
     }
@@ -65,23 +68,32 @@ public class MyServer {
 
   private void handleRequest(StringBuilder request, OutputStream outputStream) {
     String resource = parseResource(request);
-    FileInputStream file = null;
+
     if (resource.equals("/") || resource.equals("/hello")) {
-      try {
-        file = new FileInputStream(rootDir + "/index.html");
-      } catch (FileNotFoundException e) {
+      try (FileInputStream file = new FileInputStream(rootDir + "/index.html")) {
+        String filetype = resource.split("\\.")[1];
+        sendFile(file, filetype, outputStream);
+      } catch (IOException e) {
         send404(outputStream);
 //        throw new RuntimeException(e);
       }
-      if (file != null) sendFile(file, outputStream);
+
+    } else if (resource.equals("/listing")) {
+      sendHTMLString(renderContentsAsHTML(getContentsOfDir(rootDir)), outputStream);
+
+    } else if (resource.contains("/listing/")) {
+      String dir = resource.split("/")[2];
+      Object[] contents = getContentsOfDir(rootDir + "/" + dir);
+      sendHTMLString(renderContentsAsHTML(dir, contents), outputStream);
+
     } else {
-      try {
-        file = new FileInputStream(rootDir + resource);
-      } catch (FileNotFoundException e) {
+      try (FileInputStream file = new FileInputStream(rootDir + resource)) {
+        String filetype = resource.split("\\.")[1];
+        sendFile(file, filetype, outputStream);
+      } catch (IOException e) {
         send404(outputStream);
 //        throw new RuntimeException(e);
       }
-      if (file != null) sendFile(file, outputStream);
     }
   }
 
@@ -90,9 +102,10 @@ public class MyServer {
     return firstLine.split(" ")[1];
   }
 
-  private void sendFile(FileInputStream file, OutputStream outputStream) {
+  private void sendFile(FileInputStream file, String filetype, OutputStream outputStream) {
     try {
       outputStream.write(("HTTP/1.1 200 OK\r\n").getBytes());
+      outputStream.write(setContentType(filetype).getBytes());
       outputStream.write(("Server: My MacBook Pro\r\n\r\n").getBytes());
       outputStream.write(file.readAllBytes());
       outputStream.flush();
@@ -101,12 +114,74 @@ public class MyServer {
     }
   }
 
-  private void send404(OutputStream outputStream) {
+  private String setContentType(String filetype) {
+    return switch (filetype) {
+      case "jpg", "jpeg" -> "Content-Type: image/jpeg\r\n";
+      case "txt", "html" -> "Content-Type: text/html\r\n";
+      case "png" -> "Content-Type: image/png\r\n";
+      case "pdf" -> "Content-Type: application/pdf\r\n";
+      default -> "";
+    };
+  }
+
+  private void sendHTMLString(String html, OutputStream outputStream) {
     try {
-      outputStream.write(("HTTP/1.1 404 Not Found\r\n\r\n").getBytes());
+      outputStream.write(("HTTP/1.1 200 OK\r\n").getBytes());
+      outputStream.write(("Content-Type: text/html\r\n").getBytes());
+      outputStream.write(("Server: My MacBook Pro\r\n\r\n").getBytes());
+      outputStream.write(html.getBytes());
       outputStream.flush();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private void send404(OutputStream outputStream) {
+    try {
+      outputStream.write(("HTTP/1.1 404 Not Found\r\n").getBytes());
+      outputStream.write(("Content-Type: text/html\r\n").getBytes());
+      outputStream.write(("Server: My MacBook Pro\r\n\r\n").getBytes());
+      outputStream.write(("<h1>Error 404: Not Found</h1>").getBytes());
+      outputStream.flush();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static Object[] getContentsOfDir(String dir) {
+    File d = new File(dir);
+    return Arrays.stream(Objects.requireNonNull(d.listFiles())).map(File::getName).toArray();
+  }
+
+  public static String renderContentsAsHTML(Object[] contents) {
+    StringBuilder html = new StringBuilder();
+    html.append("<ul>");
+    for (Object i : contents) {
+      String li;
+      if (i.toString().contains(".")) {
+        li = String.format("<li><a href=\"/%s\">%s</a></li>", i, i);
+      } else {
+        li = String.format("<li><a href=\"/listing/%s\">%s</a></li>", i, i);
+      }
+      html.append(li);
+    }
+    html.append("</ul>\r\n");
+    return html.toString();
+  }
+
+  public static String renderContentsAsHTML(String dir, Object[] contents) {
+    StringBuilder html = new StringBuilder();
+    html.append("<ul>");
+    for (Object i : contents) {
+      String li;
+      if (i.toString().contains(".")) {
+        li = String.format("<li><a href=\"/%s/%s\">%s</a></li>", dir, i, i);
+      } else {
+        li = String.format("<li><a href=\"/listing/%s/%s\">%s</a></li>", dir, i, i);
+      }
+      html.append(li);
+    }
+    html.append("</ul>");
+    return html.toString();
   }
 }
