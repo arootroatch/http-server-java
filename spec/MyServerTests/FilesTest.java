@@ -1,37 +1,44 @@
 package MyServerTests;
 
 import MyServer.MyServer;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.util.Arrays;
 import java.util.Scanner;
 
-import static MyServer.MyServer.getContentsOfDir;
-import static MyServer.MyServer.renderContentsAsHTML;
 import static MyServerTests.URLConnection.connectToURL;
 import static MyServerTests.URLConnection.parseResponse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FilesTest {
-  MyServer server;
+  static MyServer server;
 
-  @BeforeEach
-  void setup() {
-    server = new MyServer(1234, "testroot");
+  @BeforeAll
+  static void setup() {
+    server = new MyServer(1235, "testroot");
     server.start();
   }
 
   @Test
   void listing() throws IOException {
-    HttpURLConnection connection = connectToURL("http://localhost:1234/listing");
+    HttpURLConnection connection = connectToURL("http://localhost:1235/listing");
+    StringBuilder response = parseResponse(connection.getInputStream());
+    int i = response.toString().length();
+    assertEquals("<ul>", response.substring(0, 4));
+    assertEquals("</ul>\r\n", response.substring(i - 7));
+    assertTrue(response.toString().contains("<li><a href=\"/index.html\">index.html</a></li>"));
+    assertTrue(response.toString().contains("<li><a href=\"/hello.pdf\">hello.pdf</a></li>"));
+    assertTrue(response.toString().contains("<li><a href=\"/listing/img\">img</a></li>"));
+  }
+
+  @Test
+  void listingSlash() throws IOException {
+    HttpURLConnection connection = connectToURL("http://localhost:1235/listing/");
     StringBuilder response = parseResponse(connection.getInputStream());
     int i = response.toString().length();
     assertEquals("<ul>", response.substring(0, 4));
@@ -43,7 +50,7 @@ public class FilesTest {
 
   @Test
   void listingImg() throws IOException {
-    HttpURLConnection connection = connectToURL("http://localhost:1234/listing/img");
+    HttpURLConnection connection = connectToURL("http://localhost:1235/listing/img");
     StringBuilder response = parseResponse(connection.getInputStream());
     int i = response.toString().length();
     assertEquals("<ul>", response.substring(0, 4));
@@ -55,11 +62,40 @@ public class FilesTest {
   }
 
   @Test
+  void img() throws IOException {
+    HttpURLConnection connection = connectToURL("http://localhost:1235/img");
+    StringBuilder response = parseResponse(connection.getInputStream());
+    int i = response.toString().length();
+    assertEquals("<ul>", response.substring(0, 4));
+    assertEquals("</ul>\r\n", response.substring(i - 7));
+    assertTrue(response.toString().contains("<li><a href=\"/img/autobot.jpg\">autobot.jpg</a></li>"));
+    assertTrue(response.toString().contains("<li><a href=\"/img/autobot.png\">autobot.png</a></li>"));
+    assertTrue(response.toString().contains("<li><a href=\"/img/decepticon.jpg\">decepticon.jpg</a></li>"));
+    assertTrue(response.toString().contains("<li><a href=\"/img/decepticon.png\">decepticon.png</a></li>"));
+  }
+
+  @Test
+  void dirIndex() throws IOException {
+    MyServer server1 = new MyServer(1236, "root");
+    server1.start();
+
+    HttpURLConnection connection = connectToURL("http://localhost:1236/test-dir");
+    StringBuilder response = parseResponse(connection.getInputStream());
+    int responseCode = connection.getResponseCode();
+
+    assertTrue(response.toString().contains("<h1>Hello, World!</h1>"));
+    assertTrue(response.toString()
+        .contains("<p>You have reached the index.html file in root/test-dir of the http-spec project.</p>"));
+    assertEquals(200, responseCode);
+
+    server1.stop();
+  }
+
+  @Test
   void servesHTML() throws IOException {
-    HttpURLConnection connection = connectToURL("http://localhost:1234/index.html");
+    HttpURLConnection connection = connectToURL("http://localhost:1235/index.html");
     StringBuilder response = parseResponse(connection.getInputStream());
     String header = connection.getHeaderField("Content-Type");
-    System.out.println(header);
     String file = readFile("testroot/index.html");
     assertEquals(file, response.toString());
     assertTrue(header.contains("text/html"));
@@ -67,7 +103,7 @@ public class FilesTest {
 
   @Test
   void servesJPG() throws IOException {
-    HttpURLConnection connection = connectToURL("http://localhost:1234/img/autobot.jpg");
+    HttpURLConnection connection = connectToURL("http://localhost:1235/img/autobot.jpg");
     StringBuilder response = parseResponse(connection.getInputStream());
     String header = connection.getHeaderField("Content-Type");
 
@@ -81,7 +117,7 @@ public class FilesTest {
 
   @Test
   void servesPNG() throws IOException {
-    HttpURLConnection connection = connectToURL("http://localhost:1234/img/decepticon.png");
+    HttpURLConnection connection = connectToURL("http://localhost:1235/img/decepticon.png");
     StringBuilder response = parseResponse(connection.getInputStream());
     String header = connection.getHeaderField("Content-Type");
 
@@ -95,7 +131,7 @@ public class FilesTest {
 
   @Test
   void servesPDF() throws IOException {
-    HttpURLConnection connection = connectToURL("http://localhost:1234/hello.pdf");
+    HttpURLConnection connection = connectToURL("http://localhost:1235/hello.pdf");
     StringBuilder response = parseResponse(connection.getInputStream());
     String header = connection.getHeaderField("Content-Type");
 
@@ -107,43 +143,13 @@ public class FilesTest {
     assertTrue(header.contains("application/pdf"));
   }
 
-  @Test
-  void listContents() {
-    Object[] files = getContentsOfDir("testroot");
-    assertTrue(Arrays.toString(files).contains("forms.html"));
-    assertTrue(Arrays.toString(files).contains("hello.pdf"));
-    assertTrue(Arrays.toString(files).contains("index.html"));
-    assertTrue(Arrays.toString(files).contains("img"));
-  }
 
-  @Test
-  void listContentsImg() {
-    Object[] files = getContentsOfDir("testroot/img");
-    assertTrue(Arrays.toString(files).contains("autobot.jpg"));
-    assertTrue(Arrays.toString(files).contains("autobot.png"));
-    assertTrue(Arrays.toString(files).contains("decepticon.jpg"));
-    assertTrue(Arrays.toString(files).contains("decepticon.png"));
-  }
-
-  @Test
-  void createHTML() {
-    String html = renderContentsAsHTML(getContentsOfDir("testroot"));
-    System.out.println(html);
-    int i = html.length();
-    assertEquals("<ul>", html.substring(0, 4));
-    assertEquals("</ul>\r\n", html.substring(i - 7));
-    assertTrue(html.contains("<li><a href=\"/index.html\">index.html</a></li>"));
-    assertTrue(html.contains("<li><a href=\"/forms.html\">forms.html</a></li>"));
-    assertTrue(html.contains("<li><a href=\"/hello.pdf\">hello.pdf</a></li>"));
-    assertTrue(html.contains("<li><a href=\"/listing/img\">img</a></li>"));
-  }
-
-  @AfterEach
-  void teardown() {
+  @AfterAll
+  static void teardown() {
     server.stop();
   }
 
-  private static String readFile(String path){
+  private static String readFile(String path) {
     StringBuilder contents = new StringBuilder();
     try {
       File myObj = new File(path);

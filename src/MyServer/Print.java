@@ -1,7 +1,5 @@
 package MyServer;
 
-import java.util.Objects;
-
 public class Print {
   public static void printHelp() {
     System.out.println("  -p     Specify the port.  Default is 80.");

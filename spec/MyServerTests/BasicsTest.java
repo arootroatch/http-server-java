@@ -1,9 +1,7 @@
 package MyServerTests;
 
 import MyServer.MyServer;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -15,13 +13,15 @@ import static org.junit.jupiter.api.Assertions.*;
 public class BasicsTest {
   static MyServer server;
 
-  @BeforeEach
-  void setup() {
+  @BeforeAll
+  static void setup() {
     server = new MyServer(1234, "testroot");
+    server.start();
   }
 
   @Test
   void start() {
+    server.stop();
     assertFalse(server.isRunning());
     assertNull(server.getThread());
     server.start();
@@ -32,7 +32,6 @@ public class BasicsTest {
 
   @Test
   void servesIndex() throws IOException {
-    server.start();
     HttpURLConnection connection = connectToURL("http://localhost:1234");
     StringBuilder response = parseResponse(connection.getInputStream());
     int responseCode = connection.getResponseCode();
@@ -43,7 +42,6 @@ public class BasicsTest {
 
   @Test
   void servesIndexSlash() throws IOException {
-    server.start();
     HttpURLConnection connection = connectToURL("http://localhost:1234/");
     StringBuilder response = parseResponse(connection.getInputStream());
     int responseCode = connection.getResponseCode();
@@ -54,7 +52,6 @@ public class BasicsTest {
 
   @Test
   void servesIndexHTML() throws IOException {
-    server.start();
     HttpURLConnection connection = connectToURL("http://localhost:1234/index.html");
     StringBuilder response = parseResponse(connection.getInputStream());
     int responseCode = connection.getResponseCode();
@@ -65,7 +62,6 @@ public class BasicsTest {
 
   @Test
   void status404() throws IOException {
-    server.start();
     HttpURLConnection connection = connectToURL("http://localhost:1234/blah");
 //    StringBuilder response = parseResponse(connection.getInputStream());
     int responseCode = connection.getResponseCode();
@@ -76,15 +72,14 @@ public class BasicsTest {
 
   @Test
   void serverHeader() throws IOException {
-    server.start();
     HttpURLConnection connection = connectToURL("http://localhost:1234/");
     String header = connection.getHeaderField("Server");
     assertNotNull(header);
     assertEquals("My MacBook Pro", header);
   }
 
-  @AfterEach
-  void teardown() {
+  @AfterAll
+  static void teardown() {
     server.stop();
   }
 }
