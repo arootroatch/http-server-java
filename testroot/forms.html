@@ -1,15 +1,17 @@
 <html>
 
-<h2>Get Form</h2>
+<h2>GET Form</h2>
 <form method="get" action="/form">
- <label>Foo:</label>
- <input type="text" name="foo"/>
+ <label for="foo">Foo:</label>
+ <input type="text" name="foo" id="foo"/>
+ <label for="bar">Bar:</label>
+ <input type="text" name="bar" id="bar"/>
  <input type="submit" value="Submit"/>
 </form>
 
 <hr>
 
-<h2>Post Form</h2>
+<h2>POST Form</h2>
 <form method="post" action="/form" enctype="multipart/form-data">
  <label>File:</label>
  <input type="file" name="file"/>

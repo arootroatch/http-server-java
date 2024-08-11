@@ -14,17 +14,16 @@ public class URLConnection {
     return (HttpURLConnection) url.openConnection();
   }
 
-  public static StringBuilder parseResponse(InputStream inputStream) throws IOException {
+  public static StringBuilder parseInputStream(InputStream inputStream) throws IOException {
     InputStreamReader isr = new InputStreamReader(inputStream);
     BufferedReader br = new BufferedReader(isr);
-    StringBuilder request = new StringBuilder();
+    StringBuilder response = new StringBuilder();
     String line = br.readLine();
 
     while (line != null) {
-      if (line.isBlank()) break;
-      request.append(line).append("\r\n");
+      response.append(line).append("\r\n");
       line = br.readLine();
     }
-    return request;
+    return response;
   }
 }

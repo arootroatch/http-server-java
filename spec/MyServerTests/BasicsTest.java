@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 
 import static MyServerTests.URLConnection.connectToURL;
-import static MyServerTests.URLConnection.parseResponse;
+import static MyServerTests.URLConnection.parseInputStream;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class BasicsTest {
@@ -33,7 +33,7 @@ public class BasicsTest {
   @Test
   void servesIndex() throws IOException {
     HttpURLConnection connection = connectToURL("http://localhost:1234");
-    StringBuilder response = parseResponse(connection.getInputStream());
+    StringBuilder response = parseInputStream(connection.getInputStream());
     int responseCode = connection.getResponseCode();
 
     assertTrue(response.toString().contains("<h1>Hello, World!</h1>"));
@@ -43,7 +43,7 @@ public class BasicsTest {
   @Test
   void servesIndexSlash() throws IOException {
     HttpURLConnection connection = connectToURL("http://localhost:1234/");
-    StringBuilder response = parseResponse(connection.getInputStream());
+    StringBuilder response = parseInputStream(connection.getInputStream());
     int responseCode = connection.getResponseCode();
 
     assertTrue(response.toString().contains("<h1>Hello, World!</h1>"));
@@ -53,7 +53,7 @@ public class BasicsTest {
   @Test
   void servesIndexHTML() throws IOException {
     HttpURLConnection connection = connectToURL("http://localhost:1234/index.html");
-    StringBuilder response = parseResponse(connection.getInputStream());
+    StringBuilder response = parseInputStream(connection.getInputStream());
     int responseCode = connection.getResponseCode();
 
     assertTrue(response.toString().contains("<h1>Hello, World!</h1>"));
