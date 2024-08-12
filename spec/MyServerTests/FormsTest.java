@@ -5,9 +5,9 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.HttpURLConnection;
+import java.nio.charset.StandardCharsets;
 
 import static MyServer.Request.getQueryParams;
 import static MyServer.Request.queryParamsToHTML;
@@ -93,17 +93,35 @@ public class FormsTest {
     HttpURLConnection connection = connectToURL("http://localhost:1237/form");
     connection.setRequestMethod("POST");
     connection.setDoOutput(true);
-    connection.setRequestProperty("Content-Type", "image/jpg");
-    FileInputStream file = new FileInputStream("testroot/img/autobot.jpg");
-    connection.getOutputStream().write(file.readAllBytes());
+    connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=test-boundary");
+
+    OutputStream outputStream = connection.getOutputStream();
+    PrintWriter writer = new PrintWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
+
+    outputStream.write(("--test-boundary\r\n").getBytes());
+    outputStream.write(("Content-Disposition: form-data; name=\"file\"; filename=\"" +
+        (new File("testroot/img/autobot.jpg").getName()) + "\"\r\n").getBytes());
+    outputStream.write(("Content-Type: image/jpeg\r\n\r\n").getBytes());
+//    writer.append("")
+//        .append(new File().getName()).append("\"").append("\r\n");
+//    writer.append("Content-Type: image/jpeg").append("\r\n");
+//    writer.append("\r\n");
+//    writer.flush();
+
+//    FileInputStream file = new FileInputStream("testroot/img/autobot.jpg");
+//    outputStream.write(file.readAllBytes());
+
+//    writer.append("\r\n").flush();
+//    writer.append("--test-boundary--").append("\r\n");
+//    writer.close();
 
     StringBuilder response = parseInputStream(connection.getInputStream());
     int i = response.length();
     assertEquals("<html>", response.substring(0, 6));
     assertTrue(response.toString().contains("<h2>POST Form</h2>"));
     assertTrue(response.toString().contains("<li>file name: autobot.jpg</li>"));
-    assertTrue(response.toString().contains("<li>content type: application/octet-stream</li>"));
-    assertTrue(response.toString().contains("<li>file size: 58453</li>"));
+    assertTrue(response.toString().contains("<li>content type: image/jpeg</li>"));
+    assertTrue(response.toString().contains("<li>file size: 58588</li>"));
     assertEquals("</html>\r\n", response.substring(i - 9));
   }
 

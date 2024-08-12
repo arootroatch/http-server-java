@@ -17,6 +17,18 @@ public class Response {
     }
   }
 
+  public static void sendFile(String file, String filetype, OutputStream outputStream) {
+    try {
+      outputStream.write(("HTTP/1.1 200 OK\r\n").getBytes());
+      outputStream.write(setContentType(filetype).getBytes());
+      outputStream.write(("Server: My MacBook Pro\r\n\r\n").getBytes());
+      outputStream.write(file.getBytes());
+      outputStream.flush();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   public static void sendFile(String file, String filetype, OutputStream outputStream, String addHTML) {
     String newHTML = file.split("</html>")[0] + addHTML + "</html>";
     try {

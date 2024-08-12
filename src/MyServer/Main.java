@@ -17,7 +17,7 @@ public class Main {
       return;
     }
 
-    MyServer server = new MyServer(port, "testroot");
+    MyServer server = new MyServer(3000, "testroot");
     server.start();
   }
 

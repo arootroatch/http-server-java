@@ -1,36 +1,73 @@
 package MyServer;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Date;
 
 import static MyServer.DirectoryContents.getContentsOfDir;
 import static MyServer.DirectoryContents.renderContentsAsHTML;
 import static MyServer.Response.*;
 
 public class Request {
-  public static StringBuilder parseRequest(InputStream inputStream) throws IOException {
+  public static String parseGetRequest(InputStream inputStream) {
     InputStreamReader isr = new InputStreamReader(inputStream);
     BufferedReader br = new BufferedReader(isr);
     StringBuilder request = new StringBuilder();
-    String line = br.readLine();
-
+    String line;
+    try {
+      line = br.readLine();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
 
     while (line != null) {
+      System.out.println(line);
       if (line.isBlank()) break;
       request.append(line).append("\r\n");
-      line = br.readLine();
+      try {
+        line = br.readLine();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
     }
-    return request;
+    return request.toString();
   }
 
-  public static String parseResource(StringBuilder request) {
-    String firstLine = request.toString().split("\r\n")[0];
+  public static String parsePostRequest(InputStream inputStream) throws IOException {
+    InputStreamReader isr = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+    BufferedReader br = new BufferedReader(isr);
+    StringBuilder request = new StringBuilder();
+    String line;
+    int i = 80;
+    try {
+      line = br.readLine();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
+    while (i > 0) {
+      request.append(line).append("\r\n");
+      try {
+        line = br.readLine();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      System.out.println(line);
+      i--;
+    }
+    return request.toString();
+  }
+
+  public static String parseResource(String request) {
+    String firstLine = request.split("\r\n")[0];
     String resource = "";
     if (!firstLine.isBlank()) resource = firstLine.split(" ")[1];
     return resource;
   }
 
-  public static void handleRequest(StringBuilder request, OutputStream outputStream, String rootDir) {
+  public static void handleRequest(InputStream inputStream, OutputStream outputStream, String rootDir) {
+    String request = parseGetRequest(inputStream);
     String resource = parseResource(request);
 
     if (resource.equals("/") || resource.equals("/hello")) {
@@ -44,7 +81,7 @@ public class Request {
       sendHTMLString(renderContentsAsHTML(getContentsOfDir(rootDir)), outputStream);
     } else if (resource.contains("/listing/")) {
       String[] split = resource.split("/");
-      String dir = "";
+      String dir;
       if (split.length > 2) {
         dir = resource.split("/")[2];
         Object[] contents = getContentsOfDir(rootDir + "/" + dir);
@@ -53,7 +90,8 @@ public class Request {
 
     } else if (resource.contains("/form")) {
       try (FileInputStream file = new FileInputStream(rootDir + "/forms.html")) {
-        if (request.toString().contains("POST")) {
+        if (request.contains("POST")) {
+          request = parsePostRequest(inputStream);
           String html = parseHTML(file);
 //          headersToHTML(request.toString());
 //          String addHTML = queryParamsToHTML
@@ -66,6 +104,17 @@ public class Request {
       } catch (IOException e) {
         send404(outputStream);
 //        throw new RuntimeException(e);
+      }
+
+    } else if (resource.contains("/ping")) {
+      boolean delayed = resource.split("/").length > 2;
+      int delay = delayed ? Integer.parseInt(resource.split("/")[2]) : 0;
+      Date start = new Date();
+      try {
+        Thread.sleep(delay * 1000L);
+        sendFile(renderPingHTML(start), "html", outputStream);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
       }
 
     } else if (!resource.contains(".")) {
@@ -113,22 +162,6 @@ public class Request {
     return html.toString();
   }
 
-//  public static String headersToHTML(String request){
-//    String fileName;
-//    String contentType;
-//    String fileSize;
-//    String[] requestSplit = request.split("\r\n");
-//    StringBuilder html = new StringBuilder();
-//
-//    html.append("<ul>");
-////    for(String i : requestSplit){
-////      if (i.contains(""))
-////    }
-//
-//    System.out.println(Arrays.toString(requestSplit));
-//    return "";
-//  }
-
   public static String parseHTML(InputStream inputStream) throws IOException {
     InputStreamReader isr = new InputStreamReader(inputStream);
     BufferedReader br = new BufferedReader(isr);
@@ -139,6 +172,20 @@ public class Request {
       html.append(line).append("\r\n");
       line = br.readLine();
     }
+    return html.toString();
+  }
+
+  public static String renderPingHTML(Date start) {
+    StringBuilder html = new StringBuilder();
+    Date end = new Date();
+
+    html.append("<html>");
+    html.append("<h2>Ping</h2>");
+    html.append("<ul>");
+    html.append("<li>start time: ").append(start).append("</li>");
+    html.append("<li>end time: ").append(end).append("</li>");
+    html.append("</ul>");
+    html.append("</html>");
     return html.toString();
   }
 }
