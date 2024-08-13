@@ -1,7 +1,7 @@
 package MyServer;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.net.Socket;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -11,8 +11,7 @@ import static MyServer.Response.*;
 
 public class Request {
   public static String parseGetRequest(InputStream inputStream) {
-    InputStreamReader isr = new InputStreamReader(inputStream);
-    BufferedReader br = new BufferedReader(isr);
+    BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
     StringBuilder request = new StringBuilder();
     String line;
     try {
@@ -22,7 +21,6 @@ public class Request {
     }
 
     while (line != null) {
-      System.out.println(line);
       if (line.isBlank()) break;
       request.append(line).append("\r\n");
       try {
@@ -34,28 +32,14 @@ public class Request {
     return request.toString();
   }
 
-  public static String parsePostRequest(InputStream inputStream) throws IOException {
-    InputStreamReader isr = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+  public static String parsePostRequest(InputStream inputStream, Integer contentLength) throws IOException {
+    InputStreamReader isr = new InputStreamReader(inputStream);
     BufferedReader br = new BufferedReader(isr);
     StringBuilder request = new StringBuilder();
-    String line;
-    int i = 80;
-    try {
-      line = br.readLine();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    char[] buffer = new char[contentLength];
+    int numRead = br.read(buffer, 0, contentLength);
+    request.append(buffer, 0, numRead);
 
-    while (i > 0) {
-      request.append(line).append("\r\n");
-      try {
-        line = br.readLine();
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-      System.out.println(line);
-      i--;
-    }
     return request.toString();
   }
 
@@ -66,7 +50,15 @@ public class Request {
     return resource;
   }
 
-  public static void handleRequest(InputStream inputStream, OutputStream outputStream, String rootDir) {
+  public static void handleRequest(Socket client, String rootDir, Guess guess) {
+    InputStream inputStream;
+    OutputStream outputStream;
+    try {
+      inputStream =  client.getInputStream();
+      outputStream = client.getOutputStream();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
     String request = parseGetRequest(inputStream);
     String resource = parseResource(request);
 
@@ -91,12 +83,13 @@ public class Request {
     } else if (resource.contains("/form")) {
       try (FileInputStream file = new FileInputStream(rootDir + "/forms.html")) {
         if (request.contains("POST")) {
-          request = parsePostRequest(inputStream);
+          Integer contentLength = Integer.parseInt(Arrays.stream(request.split("\r\n"))
+              .filter(s -> s.contains("Content-Length")).toArray()[0].toString().split(":")[1].trim());
+          request = parsePostRequest(inputStream, contentLength);
+          System.out.println(request);
           String html = parseHTML(file);
-//          headersToHTML(request.toString());
-//          String addHTML = queryParamsToHTML
-        }
-        if (resource.contains("?")) {
+
+        } else if (resource.contains("?")) {
           String html = parseHTML(file);
           String addHTML = queryParamsToHTML(getQueryParams(resource));
           sendFile(html, "html", outputStream, addHTML);
@@ -116,6 +109,10 @@ public class Request {
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }
+
+    } else if (resource.contains("/guess")){
+      String[] queryParams = getQueryParams(resource);
+      sendFile(guess.renderGuessHTML(queryParams), "html", outputStream);
 
     } else if (!resource.contains(".")) {
       Object[] contents = getContentsOfDir(rootDir + resource);
@@ -188,4 +185,6 @@ public class Request {
     html.append("</html>");
     return html.toString();
   }
+
+
 }

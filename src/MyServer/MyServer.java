@@ -39,32 +39,25 @@ public class MyServer {
 
   private void serve() {
     try (ServerSocket serverSocket = new ServerSocket(port)) {
+      serverSocket.setReuseAddress(true);
       while (this.running) {
-        try (Socket client = serverSocket.accept()) {
-          ClientHandler clientSock = new ClientHandler(client, rootDir);
-          new Thread(clientSock).start();
+        try {
+          Guess guess = new Guess();
+          Socket client = serverSocket.accept();
+          new Thread(() ->
+          {
+            handleRequest(client, rootDir, guess);
+          }).start();
+
+        } catch (IOException e) {
+          if (this.running) {
+            System.err.println("Socket error");
+            e.printStackTrace(System.err);
+          }
         }
       }
     } catch (IOException e) {
       System.err.println("Error handling client request: " + e.getMessage());
-    }
-  }
-
-  private static class ClientHandler implements Runnable {
-    private final Socket clientSocket;
-    private final String rootDir;
-
-    public ClientHandler(Socket socket, String rootDir){
-      this.clientSocket = socket;
-      this.rootDir = rootDir;
-    }
-
-    public void run(){
-      try {
-        handleRequest(clientSocket.getInputStream(), clientSocket.getOutputStream(), rootDir);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
     }
   }
 }

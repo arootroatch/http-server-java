@@ -17,7 +17,7 @@ public class Main {
       return;
     }
 
-    MyServer server = new MyServer(3000, "testroot");
+    MyServer server = new MyServer(port, rootDir);
     server.start();
   }
 
@@ -30,7 +30,7 @@ public class Main {
   private static String setRootDir(String[] args) {
     int indexOfArg = contains(args, "-r");
     if (indexOfArg > -1) return args[indexOfArg + 1];
-    else return "root";
+    else return "testroot";
   }
 
   private static int contains(String[] args, String s) {

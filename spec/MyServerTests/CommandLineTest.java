@@ -26,7 +26,7 @@ public class CommandLineTest {
     Main.main(args);
     assertTrue(outContent.toString().contains("MyServer"));
     assertTrue(outContent.toString().contains("Running on port: 80"));
-    assertTrue(outContent.toString().contains("Serving files from: root"));
+    assertTrue(outContent.toString().contains("Serving files from: testroot"));
   }
 
   @Test
@@ -67,7 +67,7 @@ public class CommandLineTest {
   void printConfig() {
     String[] args = {"-x"};
     Main.main(args);
-    assertEquals("MyServer\n" + "Running on port: 80\n" + "Serving files from: root\n",
+    assertEquals("MyServer\n" + "Running on port: 80\n" + "Serving files from: testroot\n",
         outContent.toString());
   }
 
