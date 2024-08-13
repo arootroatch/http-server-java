@@ -28,9 +28,10 @@ public class Main {
   }
 
   private static String setRootDir(String[] args) {
+    String path = "/Users/AlexRoot-Roatch/current-projects/http-server-java/";
     int indexOfArg = contains(args, "-r");
-    if (indexOfArg > -1) return args[indexOfArg + 1];
-    else return "testroot";
+    if (indexOfArg > -1) return path + args[indexOfArg + 1];
+    else return path + "testroot";
   }
 
   private static int contains(String[] args, String s) {

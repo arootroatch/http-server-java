@@ -85,9 +85,12 @@ public class Request {
         if (request.contains("POST")) {
           Integer contentLength = Integer.parseInt(Arrays.stream(request.split("\r\n"))
               .filter(s -> s.contains("Content-Length")).toArray()[0].toString().split(":")[1].trim());
+//          System.out.println(request);
           request = parsePostRequest(inputStream, contentLength);
-          System.out.println(request);
+//          System.out.println(request);
           String html = parseHTML(file);
+          String addHTML = postRequestHTML(request, contentLength);
+          sendFile(html, "html", outputStream, addHTML);
 
         } else if (resource.contains("?")) {
           String html = parseHTML(file);
@@ -186,5 +189,15 @@ public class Request {
     return html.toString();
   }
 
-
+  public static String postRequestHTML(String request, Integer contentLength){
+    String[] fileInfo = request.substring(0, 150).split("\r\n")[1].split(";");
+    String fileName = fileInfo[2].split("=")[1];
+    StringBuilder html = new StringBuilder();
+    html.append("<ul>")
+        .append("<li>file name: ").append(fileName).append("</li>")
+        .append("<li>content type: application/octet-stream</li>")
+        .append("<li>file size: ").append(contentLength).append("</li>")
+        .append("</ul>");
+    return html.toString();
+  }
 }

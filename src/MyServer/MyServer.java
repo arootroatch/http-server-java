@@ -8,6 +8,7 @@ import static MyServer.Print.printConfig;
 import static MyServer.Request.handleRequest;
 
 public class MyServer {
+  ServerSocket serverSocket;
   private Boolean running = false;
   private Thread thread;
   private final int port;
@@ -20,6 +21,11 @@ public class MyServer {
 
   public void start() {
     this.running = true;
+    try {
+      this.serverSocket = new ServerSocket(this.port);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
     printConfig(port, rootDir);
     this.thread = new Thread(this::serve);
     thread.start();
@@ -27,6 +33,12 @@ public class MyServer {
 
   public void stop() {
     this.running = false;
+    try {
+      this.serverSocket.close();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    this.thread = null;
   }
 
   public boolean isRunning() {
@@ -38,26 +50,29 @@ public class MyServer {
   }
 
   private void serve() {
-    try (ServerSocket serverSocket = new ServerSocket(port)) {
-      serverSocket.setReuseAddress(true);
-      while (this.running) {
-        try {
-          Guess guess = new Guess();
-          Socket client = serverSocket.accept();
-          new Thread(() ->
-          {
-            handleRequest(client, rootDir, guess);
-          }).start();
+    while (this.running) {
+      Socket client = null;
+      try {
+        Guess guess = new Guess();
+        client = this.serverSocket.accept();
+        Socket finalClient = client;
 
-        } catch (IOException e) {
-          if (this.running) {
-            System.err.println("Socket error");
-            e.printStackTrace(System.err);
+        new Thread(() ->
+        {
+          handleRequest(finalClient, rootDir, guess);
+          try {
+            finalClient.close();
+          } catch (IOException e) {
+            throw new RuntimeException(e);
           }
+        }).start();
+      } catch (IOException e) {
+        if (this.running) {
+          System.err.println("Socket error");
+          e.printStackTrace(System.err);
         }
       }
-    } catch (IOException e) {
-      System.err.println("Error handling client request: " + e.getMessage());
     }
   }
 }
+
