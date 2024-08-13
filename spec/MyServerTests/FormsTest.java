@@ -7,9 +7,6 @@ import org.junit.jupiter.api.Test;
 
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 
 import static MyServer.Request.getQueryParams;
 import static MyServer.Request.queryParamsToHTML;
