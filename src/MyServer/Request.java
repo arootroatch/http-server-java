@@ -85,9 +85,7 @@ public class Request {
         if (request.contains("POST")) {
           Integer contentLength = Integer.parseInt(Arrays.stream(request.split("\r\n"))
               .filter(s -> s.contains("Content-Length")).toArray()[0].toString().split(":")[1].trim());
-//          System.out.println(request);
           request = parsePostRequest(inputStream, contentLength);
-//          System.out.println(request);
           String html = parseHTML(file);
           String addHTML = postRequestHTML(request, contentLength);
           sendFile(html, "html", outputStream, addHTML);
@@ -176,28 +174,24 @@ public class Request {
   }
 
   public static String renderPingHTML(Date start) {
-    StringBuilder html = new StringBuilder();
     Date end = new Date();
 
-    html.append("<html>");
-    html.append("<h2>Ping</h2>");
-    html.append("<ul>");
-    html.append("<li>start time: ").append(start).append("</li>");
-    html.append("<li>end time: ").append(end).append("</li>");
-    html.append("</ul>");
-    html.append("</html>");
-    return html.toString();
+    return "<html>" +
+        "<h2>Ping</h2>" +
+        "<ul>" +
+        "<li>start time: " + start + "</li>" +
+        "<li>end time: " + end + "</li>" +
+        "</ul>" +
+        "</html>";
   }
 
   public static String postRequestHTML(String request, Integer contentLength){
     String[] fileInfo = request.substring(0, 150).split("\r\n")[1].split(";");
     String fileName = fileInfo[2].split("=")[1];
-    StringBuilder html = new StringBuilder();
-    html.append("<ul>")
-        .append("<li>file name: ").append(fileName).append("</li>")
-        .append("<li>content type: application/octet-stream</li>")
-        .append("<li>file size: ").append(contentLength).append("</li>")
-        .append("</ul>");
-    return html.toString();
+    return "<ul>" +
+        "<li>file name: " + fileName + "</li>" +
+        "<li>content type: application/octet-stream</li>" +
+        "<li>file size: " + contentLength + "</li>" +
+        "</ul>";
   }
 }
