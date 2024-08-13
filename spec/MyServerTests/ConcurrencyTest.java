@@ -72,11 +72,10 @@ public class ConcurrencyTest {
     Date delay = calendar.getTime();
 
     class MyThread extends Thread {
-      public void run(){
+      public void run() {
         try {
           HttpURLConnection conn = connectToURL("http://localhost:1238/ping/1");
           StringBuilder response = parseInputStream(conn.getInputStream());
-          System.out.println(response);
           assertTrue(response.toString().contains("<h2>Ping</h2>"));
           assertTrue(response.toString().contains("<li>start time: " + date + "</li>"));
           assertTrue(response.toString().contains("<li>end time: " + delay + "</li>"));
@@ -86,11 +85,12 @@ public class ConcurrencyTest {
       }
     }
 
-    MyThread thread = new MyThread();
-    thread.start();
+    for (int i = 0; i < 5; i++){
+      new MyThread().start();
+    }
+
     HttpURLConnection conn = connectToURL("http://localhost:1238/ping/1");
     StringBuilder response = parseInputStream(conn.getInputStream());
-    System.out.println(response);
     assertTrue(response.toString().contains("<h2>Ping</h2>"));
     assertTrue(response.toString().contains("<li>start time: " + date + "</li>"));
     assertTrue(response.toString().contains("<li>end time: " + delay + "</li>"));
