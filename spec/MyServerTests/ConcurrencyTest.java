@@ -3,10 +3,13 @@ package MyServerTests;
 import MyServer.MyServer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.Socket;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -16,21 +19,31 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ConcurrencyTest {
   static MyServer server;
+  static Socket socket;
+  static OutputStream outputStream;
 
   @BeforeAll
-  static void setup() {
+  static void setup() throws IOException {
     server = new MyServer(1238, "testroot");
     server.start();
+
+  }
+
+  @BeforeEach
+  void openSocket() throws IOException {
+    socket = new Socket("127.0.0.1", 1238);
+    outputStream = socket.getOutputStream();
   }
 
   @Test
   void currentTime() throws IOException {
     Date date = new Date();
-    HttpURLConnection connection = connectToURL("http://localhost:1238/ping");
-    StringBuilder response = parseInputStream(connection.getInputStream());
-    assertTrue(response.toString().contains("<h2>Ping</h2>"));
-    assertTrue(response.toString().contains("<li>start time: " + date + "</li>"));
-    assertTrue(response.toString().contains("<li>end time: " + date + "</li>"));
+    outputStream.write(("GET /ping HTTP/1.1\r\n\r\n").getBytes());
+    outputStream.flush();
+    String response = parseInputStream(socket.getInputStream());
+    assertTrue(response.contains("<h2>Ping</h2>"));
+    assertTrue(response.contains("<li>start time: " + date + "</li>"));
+    assertTrue(response.contains("<li>end time: " + date + "</li>"));
   }
 
   @Test
@@ -41,11 +54,12 @@ public class ConcurrencyTest {
     calendar.add(Calendar.SECOND, 1);
     Date delay = calendar.getTime();
 
-    HttpURLConnection connection = connectToURL("http://localhost:1238/ping/1");
-    StringBuilder response = parseInputStream(connection.getInputStream());
-    assertTrue(response.toString().contains("<h2>Ping</h2>"));
-    assertTrue(response.toString().contains("<li>start time: " + date + "</li>"));
-    assertTrue(response.toString().contains("<li>end time: " + delay + "</li>"));
+    outputStream.write(("GET /ping/1 HTTP/1.1\r\n\r\n").getBytes());
+    outputStream.flush();
+    String response = parseInputStream(socket.getInputStream());
+    assertTrue(response.contains("<h2>Ping</h2>"));
+    assertTrue(response.contains("<li>start time: " + date + "</li>"));
+    assertTrue(response.contains("<li>end time: " + delay + "</li>"));
   }
 
   @Test
@@ -56,11 +70,12 @@ public class ConcurrencyTest {
     calendar.add(Calendar.SECOND, 2);
     Date delay = calendar.getTime();
 
-    HttpURLConnection connection = connectToURL("http://localhost:1238/ping/2");
-    StringBuilder response = parseInputStream(connection.getInputStream());
-    assertTrue(response.toString().contains("<h2>Ping</h2>"));
-    assertTrue(response.toString().contains("<li>start time: " + date + "</li>"));
-    assertTrue(response.toString().contains("<li>end time: " + delay + "</li>"));
+    outputStream.write(("GET /ping/2 HTTP/1.1\r\n\r\n").getBytes());
+    outputStream.flush();
+    String response = parseInputStream(socket.getInputStream());
+    assertTrue(response.contains("<h2>Ping</h2>"));
+    assertTrue(response.contains("<li>start time: " + date + "</li>"));
+    assertTrue(response.contains("<li>end time: " + delay + "</li>"));
   }
 
   @Test
@@ -75,10 +90,13 @@ public class ConcurrencyTest {
       public void run() {
         try {
           HttpURLConnection conn = connectToURL("http://localhost:1238/ping/1");
-          StringBuilder response = parseInputStream(conn.getInputStream());
-          assertTrue(response.toString().contains("<h2>Ping</h2>"));
-          assertTrue(response.toString().contains("<li>start time: " + date + "</li>"));
-          assertTrue(response.toString().contains("<li>end time: " + delay + "</li>"));
+          String response = parseInputStream(conn.getInputStream());
+//          outputStream.write(("GET /ping/1 HTTP/1.1\r\n\r\n").getBytes());
+//          outputStream.flush();
+//          String response = parseInputStream(socket.getInputStream());
+          assertTrue(response.contains("<h2>Ping</h2>"));
+          assertTrue(response.contains("<li>start time: " + date + "</li>"));
+          assertTrue(response.contains("<li>end time: " + delay + "</li>"));
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
@@ -89,15 +107,18 @@ public class ConcurrencyTest {
       new MyThread().start();
     }
 
-    HttpURLConnection conn = connectToURL("http://localhost:1238/ping/1");
-    StringBuilder response = parseInputStream(conn.getInputStream());
-    assertTrue(response.toString().contains("<h2>Ping</h2>"));
-    assertTrue(response.toString().contains("<li>start time: " + date + "</li>"));
-    assertTrue(response.toString().contains("<li>end time: " + delay + "</li>"));
+    outputStream.write(("GET /ping/1 HTTP/1.1\r\n\r\n").getBytes());
+    outputStream.flush();
+    String response = parseInputStream(socket.getInputStream());
+    System.out.println(response);
+    assertTrue(response.contains("<h2>Ping</h2>"));
+    assertTrue(response.contains("<li>start time: " + date + "</li>"));
+    assertTrue(response.contains("<li>end time: " + delay + "</li>"));
   }
 
   @AfterAll
-  static void teardown() {
+  static void teardown() throws IOException {
     server.stop();
+    socket.close();
   }
 }

@@ -12,6 +12,7 @@ public class Response {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+
     writeToOutputStream(filetype, outputStream, fileBytes);
   }
 

@@ -14,7 +14,7 @@ public class URLConnection {
     return (HttpURLConnection) url.openConnection();
   }
 
-  public static StringBuilder parseInputStream(InputStream inputStream) throws IOException {
+  public static String parseInputStream(InputStream inputStream) throws IOException {
     InputStreamReader isr = new InputStreamReader(inputStream);
     BufferedReader br = new BufferedReader(isr);
     StringBuilder response = new StringBuilder();
@@ -24,6 +24,6 @@ public class URLConnection {
       response.append(line).append("\r\n");
       line = br.readLine();
     }
-    return response;
+    return response.toString();
   }
 }

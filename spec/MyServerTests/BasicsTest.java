@@ -1,22 +1,30 @@
 package MyServerTests;
 
 import MyServer.MyServer;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 
-import static MyServerTests.URLConnection.connectToURL;
 import static MyServerTests.URLConnection.parseInputStream;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class BasicsTest {
   static MyServer server;
+  static Socket socket;
+  static OutputStream outputStream;
 
   @BeforeAll
-  static void setup() {
+  static void setup() throws IOException {
     server = new MyServer(1234, "testroot");
     server.start();
+
+    socket = new Socket("127.0.0.1", 1234);
+    outputStream = socket.getOutputStream();
   }
 
   @Test
@@ -27,59 +35,50 @@ public class BasicsTest {
     server.start();
     assertTrue(server.isRunning());
     assertNotNull(server.getThread());
-//    assertTrue(server.getThread().isAlive());
+    assertTrue(server.getThread().isAlive());
   }
 
   @Test
   void servesIndex() throws IOException {
-    HttpURLConnection connection = connectToURL("http://localhost:1234");
-    StringBuilder response = parseInputStream(connection.getInputStream());
-    int responseCode = connection.getResponseCode();
+    outputStream.write(("GET / HTTP/1.1\r\n\r\n").getBytes());
+    outputStream.flush();
+    InputStream inputStream = socket.getInputStream();
 
-    assertTrue(response.toString().contains("<h1>Hello, World!</h1>"));
-    assertEquals(200, responseCode);
-  }
-
-  @Test
-  void servesIndexSlash() throws IOException {
-    HttpURLConnection connection = connectToURL("http://localhost:1234/");
-    StringBuilder response = parseInputStream(connection.getInputStream());
-    int responseCode = connection.getResponseCode();
-
-    assertTrue(response.toString().contains("<h1>Hello, World!</h1>"));
-    assertEquals(200, responseCode);
+    String response = parseInputStream(inputStream);
+    assertTrue(response.contains("<h1>Hello, World!</h1>"));
+    assertTrue(response.contains("200 OK"));
   }
 
   @Test
   void servesIndexHTML() throws IOException {
-    HttpURLConnection connection = connectToURL("http://localhost:1234/index.html");
-    StringBuilder response = parseInputStream(connection.getInputStream());
-    int responseCode = connection.getResponseCode();
+    outputStream.write(("GET /index.html HTTP/1.1\r\n\r\n").getBytes());
+    outputStream.flush();
+    String response = parseInputStream(socket.getInputStream());
 
-    assertTrue(response.toString().contains("<h1>Hello, World!</h1>"));
-    assertEquals(200, responseCode);
+    assertTrue(response.contains("<h1>Hello, World!</h1>"));
+    assertTrue(response.contains("200 OK"));
   }
 
   @Test
   void status404() throws IOException {
-    HttpURLConnection connection = connectToURL("http://localhost:1234/blah");
-//    StringBuilder response = parseResponse(connection.getInputStream());
-    int responseCode = connection.getResponseCode();
+    outputStream.write(("GET /blah HTTP/1.1\r\n\r\n").getBytes());
+    outputStream.flush();
+    String response = parseInputStream(socket.getInputStream());
 
-//    assertTrue(response.toString().contains("<h1>Error 404: Not Found</h1>"));
-    assertEquals(404, responseCode);
+    assertTrue(response.contains("404 Not Found"));
   }
 
   @Test
   void serverHeader() throws IOException {
-    HttpURLConnection connection = connectToURL("http://localhost:1234/");
-    String header = connection.getHeaderField("Server");
-    assertNotNull(header);
-    assertEquals("My MacBook Pro", header);
+    outputStream.write(("GET / HTTP/1.1\r\n\r\n").getBytes());
+    outputStream.flush();
+    String response = parseInputStream(socket.getInputStream());
+    assertTrue(response.contains("Server: My MacBook Pro"));
   }
 
   @AfterAll
-  static void teardown() {
+  static void teardown() throws IOException {
     server.stop();
+    socket.close();
   }
 }

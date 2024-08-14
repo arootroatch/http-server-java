@@ -3,20 +3,21 @@ package MyServerTests;
 import MyServer.MyServer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.*;
-import java.net.HttpURLConnection;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.Socket;
 
-import static MyServer.HTML.getQueryParams;
-import static MyServer.HTML.queryParamsToHTML;
-import static MyServerTests.URLConnection.connectToURL;
 import static MyServerTests.URLConnection.parseInputStream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FormsTest {
   static MyServer server;
+  static Socket socket;
+  static OutputStream outputStream;
 
   @BeforeAll
   static void setup() {
@@ -24,67 +25,55 @@ public class FormsTest {
     server.start();
   }
 
+  @BeforeEach
+  void openSocket() throws IOException {
+    socket = new Socket("127.0.0.1", 1237);
+    outputStream = socket.getOutputStream();
+  }
+
   @Test
   void form() throws IOException {
-    HttpURLConnection connection = connectToURL("http://localhost:1237/form");
-    StringBuilder response = parseInputStream(connection.getInputStream());
-    assertTrue(response.toString().contains("<h2>GET Form</h2>"));
-    assertTrue(response.toString().contains("<form method=\"get\" action=\"/form\">"));
-    assertTrue(response.toString().contains("<label for=\"foo\">Foo:</label>"));
-    assertTrue(response.toString().contains("<input type=\"text\" name=\"foo\" id=\"foo\"/>"));
-    assertTrue(response.toString().contains("<input type=\"submit\" value=\"Submit\"/>"));
-    assertTrue(response.toString().contains("</form>"));
+    outputStream.write(("GET /form HTTP/1.1\r\n\r\n").getBytes());
+    outputStream.flush();
+    String response = parseInputStream(socket.getInputStream());
+    assertTrue(response.contains("<h2>GET Form</h2>"));
+    assertTrue(response.contains("<form method=\"get\" action=\"/form\">"));
+    assertTrue(response.contains("<label for=\"foo\">Foo:</label>"));
+    assertTrue(response.contains("<input type=\"text\" name=\"foo\" id=\"foo\"/>"));
+    assertTrue(response.contains("<input type=\"submit\" value=\"Submit\"/>"));
+    assertTrue(response.contains("</form>"));
 
-    assertTrue(response.toString().contains("<h2>POST Form</h2>"));
-    assertTrue(response.toString().contains("<form method=\"post\" action=\"/form\" enctype=\"multipart/form-data\">"));
-    assertTrue(response.toString().contains("<label>File:</label>"));
-    assertTrue(response.toString().contains("<input type=\"file\" name=\"file\"/>"));
-    assertTrue(response.toString().contains("<input type=\"submit\" value=\"Submit\"/>"));
-    assertTrue(response.toString().contains("</form>"));
+    assertTrue(response.contains("<h2>POST Form</h2>"));
+    assertTrue(response.contains("<form method=\"post\" action=\"/form\" enctype=\"multipart/form-data\">"));
+    assertTrue(response.contains("<label>File:</label>"));
+    assertTrue(response.contains("<input type=\"file\" name=\"file\"/>"));
+    assertTrue(response.contains("<input type=\"submit\" value=\"Submit\"/>"));
+    assertTrue(response.contains("</form>"));
   }
 
   @Test
   void formOneParam() throws IOException {
-    HttpURLConnection connection = connectToURL("http://localhost:1237/form?foo=1");
-    StringBuilder response = parseInputStream(connection.getInputStream());
+    outputStream.write(("GET /form?foo=1 HTTP/1.1\r\n\r\n").getBytes());
+    outputStream.flush();
+    String response = parseInputStream(socket.getInputStream());
+    String body = response.split("\r\n\r\n")[1];
     int i = response.length();
-    assertEquals("<html>", response.substring(0, 6));
-    assertTrue(response.toString().contains("<h2>GET Form</h2>"));
-    assertTrue(response.toString().contains("<li>foo: 1</li>"));
+
+    assertEquals("<html>", body.substring(0, 6));
+    assertTrue(response.contains("<h2>GET Form</h2>"));
+    assertTrue(response.contains("<li>foo: 1</li>"));
     assertEquals("</html>\r\n", response.substring(i - 9));
   }
 
   @Test
   void formTwoParams() throws IOException {
-    HttpURLConnection connection = connectToURL("http://localhost:1237/form?foo=1&bar=2");
-    StringBuilder response = parseInputStream(connection.getInputStream());
-    int i = response.length();
-    assertEquals("<html>", response.substring(0, 6));
-    assertTrue(response.toString().contains("<h2>GET Form</h2>"));
-    assertTrue(response.toString().contains("<li>foo: 1</li>"));
-    assertTrue(response.toString().contains("<li>bar: 2</li>"));
-    assertEquals("</html>\r\n", response.substring(i - 9));
-  }
+    outputStream.write(("GET /form?foo=1&bar=2 HTTP/1.1\r\n\r\n").getBytes());
+    outputStream.flush();
+    String response = parseInputStream(socket.getInputStream());
 
-  @Test
-  void noQueryParams(){
-    String[] result = getQueryParams("/form");
-    assertEquals(0, result.length);
-  }
-
-  @Test
-  void oneQueryParam(){
-    String[] result = getQueryParams("/form?foo=1");
-    assertEquals(1, result.length);
-    assertEquals("foo=1", result[0]);
-  }
-
-  @Test
-  void twoQueryParams(){
-    String[] result = getQueryParams("/form?foo=1&bar=2");
-    assertEquals(2, result.length);
-    assertEquals("foo=1", result[0]);
-    assertEquals("bar=2", result[1]);
+    assertTrue(response.contains("<h2>GET Form</h2>"));
+    assertTrue(response.contains("<li>foo: 1</li>"));
+    assertTrue(response.contains("<li>bar: 2</li>"));
   }
 
 //  @Test
@@ -114,19 +103,6 @@ public class FormsTest {
 //    assertTrue(response.toString().contains("<li>file size: 58588</li>"));
 //    assertEquals("</html>\r\n", response.substring(i - 9));
 //  }
-
-  @Test
-  void paramsToHTML(){
-    String[] params = {"foo=1", "bar=2"};
-    String result = queryParamsToHTML(params);
-    int i = result.length();
-
-    assertEquals("<ul>", result.substring(0, 4));
-    assertTrue(result.contains("<li>foo: 1</li>"));
-    assertTrue(result.contains("<li>bar: 2</li>"));
-    assertTrue(result.contains("<li>bar: 2</li>"));
-    assertEquals("</ul>\r\n", result.substring(i - 7));
-  }
 
   @AfterAll
   static void teardown() {

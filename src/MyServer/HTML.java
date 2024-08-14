@@ -53,7 +53,7 @@ public class HTML {
   }
 
   public static String postRequestHTML(String request, Integer contentLength){
-    String[] fileInfo = request.substring(0, 150).split("\r\n")[1].split(";");
+    String[] fileInfo = request.substring(0, 130).split("\r\n")[1].split(";");
     String fileName = fileInfo[2].split("=")[1];
     return "<ul>" +
         "<li>file name: " + fileName + "</li>" +
