@@ -1,0 +1,55 @@
+<html lang="EN">
+<body>
+<h2>Guess the number!</h2>
+<p id="high" style="display: none">Too high!</p>
+<p id="low" style="display: none">Too low!</p>
+<p id="win" style="display: none">That's it! You win!</p>
+<p id="tries">You have 7 tries left.</p>
+<label for="guess">Guess:</label><input id="guess" placeholder="Enter your guess 1-100">
+<button id="submit" onclick="handleClick()">Submit</button>
+<script type="text/javascript">
+    const n = Math.floor(Math.random() * 100) + 1;
+    const high = document.getElementById("high");
+    const low = document.getElementById("low");
+    const win = document.getElementById("win");
+    const tries = document.getElementById("tries");
+    const guess = document.getElementById("guess");
+    const submit = document.getElementById("submit");
+    let triesLeft = 7;
+
+    function handleClick() {
+        let input = guess.value;
+        console.log(input);
+        console.log(n);
+
+        if (input != null) {
+            if (input > n) {
+                high.style.display = "block";
+                low.style.display = "none";
+                win.style.display = "none";
+                triesLeft--;
+                tries.innerHTML = `You have ${triesLeft} tries left.`
+            } else if (input < n) {
+                high.style.display = "none";
+                low.style.display = "block";
+                win.style.display = "none";
+                triesLeft--;
+                tries.innerHTML = `You have ${triesLeft} tries left.`
+            } else {
+                high.style.display = "none";
+                low.style.display = "none";
+                win.style.display = "block";
+                submit.style.display = "none";
+                tries.innerHTML = `The number is ${n}`;
+            }
+        }
+
+        if (triesLeft === 0) {
+            submit.style.display = "none";
+            tries.innerHTML = `The number is ${n}`;
+        }
+    }
+</script>
+</body>
+
+</html>

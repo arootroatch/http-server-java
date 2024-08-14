@@ -8,8 +8,8 @@ import org.junit.jupiter.api.Test;
 import java.io.*;
 import java.net.HttpURLConnection;
 
-import static MyServer.Request.getQueryParams;
-import static MyServer.Request.queryParamsToHTML;
+import static MyServer.HTML.getQueryParams;
+import static MyServer.HTML.queryParamsToHTML;
 import static MyServerTests.URLConnection.connectToURL;
 import static MyServerTests.URLConnection.parseInputStream;
 import static org.junit.jupiter.api.Assertions.assertEquals;

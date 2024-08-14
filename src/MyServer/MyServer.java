@@ -53,13 +53,12 @@ public class MyServer {
     while (this.running) {
       Socket client = null;
       try {
-        Guess guess = new Guess();
         client = this.serverSocket.accept();
         Socket finalClient = client;
 
         new Thread(() ->
         {
-          handleRequest(finalClient, rootDir, guess);
+          handleRequest(finalClient, rootDir);
           try {
             finalClient.close();
           } catch (IOException e) {

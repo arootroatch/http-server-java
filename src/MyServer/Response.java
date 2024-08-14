@@ -6,47 +6,36 @@ import java.io.OutputStream;
 
 public class Response {
   public static void sendFile(FileInputStream file, String filetype, OutputStream outputStream) {
+    byte[] fileBytes = null;
     try {
-      byte[] fileBytes = file.readAllBytes();
-      int byteCount = fileBytes.length;
-      outputStream.write(("HTTP/1.1 200 OK\r\n").getBytes());
-      outputStream.write(setContentType(filetype).getBytes());
-      outputStream.write(("Content-Length: " + byteCount + "\r\n").getBytes());
-      outputStream.write(("Server: My MacBook Pro\r\n\r\n").getBytes());
-      outputStream.write(fileBytes);
-      outputStream.flush();
+      fileBytes = file.readAllBytes();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+    writeToOutputStream(filetype, outputStream, fileBytes);
   }
 
   public static void sendFile(String file, String filetype, OutputStream outputStream) {
-    try {
-      byte[] fileBytes = file.getBytes();
-      int byteCount = fileBytes.length;
-      outputStream.write(("HTTP/1.1 200 OK\r\n").getBytes());
-      outputStream.write(setContentType(filetype).getBytes());
-      outputStream.write(("Content-Length: " + byteCount + "\r\n").getBytes());
-      outputStream.write(("Server: My MacBook Pro\r\n\r\n").getBytes());
-      outputStream.write(fileBytes);
-      outputStream.flush();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    byte[] fileBytes = file.getBytes();
+    writeToOutputStream(filetype, outputStream, fileBytes);
   }
 
   public static void sendFile(String file, String filetype, OutputStream outputStream, String addHTML) {
     String newHTML = file.split("</html>")[0] + addHTML + "</html>";
     byte[] fileBytes = newHTML.getBytes();
-    int byteCount = fileBytes.length;
+      writeToOutputStream(filetype, outputStream, fileBytes);
+  }
+
+  private static void writeToOutputStream(String filetype, OutputStream outputStream, byte[] fileBytes) {
     try {
+      int byteCount = fileBytes.length;
       outputStream.write(("HTTP/1.1 200 OK\r\n").getBytes());
       outputStream.write(setContentType(filetype).getBytes());
       outputStream.write(("Content-Length: " + byteCount + "\r\n").getBytes());
       outputStream.write(("Server: My MacBook Pro\r\n\r\n").getBytes());
-      outputStream.write(newHTML.getBytes());
+      outputStream.write(fileBytes);
       outputStream.flush();
-    } catch (IOException e) {
+    } catch (IOException e){
       throw new RuntimeException(e);
     }
   }
