@@ -4,7 +4,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 public class HTML {
   public static String[] getQueryParams(String resource) {
@@ -40,14 +43,16 @@ public class HTML {
     return html.toString();
   }
 
-  public static String renderPingHTML(Date start) {
-    Date end = new Date();
+  public static String renderPingHTML(String start) {
+    String pattern = "yyyy-MM-dd hh:mm:ss";
+    SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+    String endDate = simpleDateFormat.format(new Date());
 
     return "<html>" +
         "<h2>Ping</h2>" +
         "<ul>" +
         "<li>start time: " + start + "</li>" +
-        "<li>end time: " + end + "</li>" +
+        "<li>end time: " + endDate + "</li>" +
         "</ul>" +
         "</html>";
   }

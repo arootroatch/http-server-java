@@ -3,6 +3,7 @@ package MyServerTests;
 import MyServer.MyServer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -23,6 +24,12 @@ public class BasicsTest {
     server = new MyServer(1234, "testroot");
     server.start();
 
+    socket = new Socket("127.0.0.1", 1234);
+    outputStream = socket.getOutputStream();
+  }
+
+  @BeforeEach
+  void openSocket() throws IOException {
     socket = new Socket("127.0.0.1", 1234);
     outputStream = socket.getOutputStream();
   }

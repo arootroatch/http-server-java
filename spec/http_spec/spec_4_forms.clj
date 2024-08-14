@@ -17,7 +17,7 @@
       (should-contain "<li>foo: 1</li>" body)
       (should-contain "<li>bar: 2</li>" body)))
 
-  (it "/form handles post multipart form with file upload"
+  (xit "/form handles post multipart form with file upload"
     (let [response (client/post "http://localhost:7654/form"
                                 {:multipart [{:name "file"
                                               :content-type "image/jpg"

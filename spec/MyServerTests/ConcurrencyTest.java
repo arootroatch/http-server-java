@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -21,12 +22,27 @@ public class ConcurrencyTest {
   static MyServer server;
   static Socket socket;
   static OutputStream outputStream;
+  Date date;
+  String pattern;
+  SimpleDateFormat simpleDateFormat;
+  String start;
+  Calendar calendar;
 
   @BeforeAll
   static void setup() throws IOException {
     server = new MyServer(1238, "testroot");
     server.start();
 
+  }
+
+  @BeforeEach
+  void dateSetup(){
+    date = new Date();
+    pattern = "yyyy-MM-dd hh:mm:ss";
+    simpleDateFormat = new SimpleDateFormat(pattern);
+    start = simpleDateFormat.format(date);
+    calendar = Calendar.getInstance();
+    calendar.setTime(date);
   }
 
   @BeforeEach
@@ -37,54 +53,47 @@ public class ConcurrencyTest {
 
   @Test
   void currentTime() throws IOException {
-    Date date = new Date();
     outputStream.write(("GET /ping HTTP/1.1\r\n\r\n").getBytes());
     outputStream.flush();
     String response = parseInputStream(socket.getInputStream());
     assertTrue(response.contains("<h2>Ping</h2>"));
-    assertTrue(response.contains("<li>start time: " + date + "</li>"));
-    assertTrue(response.contains("<li>end time: " + date + "</li>"));
+    assertTrue(response.contains("<li>start time: " + start + "</li>"));
+    assertTrue(response.contains("<li>end time: " + start + "</li>"));
   }
 
   @Test
   void waitOneSec() throws IOException {
-    Date date = new Date();
-    Calendar calendar = Calendar.getInstance();
-    calendar.setTime(date);
     calendar.add(Calendar.SECOND, 1);
     Date delay = calendar.getTime();
+    String end = simpleDateFormat.format(delay);
 
     outputStream.write(("GET /ping/1 HTTP/1.1\r\n\r\n").getBytes());
     outputStream.flush();
     String response = parseInputStream(socket.getInputStream());
     assertTrue(response.contains("<h2>Ping</h2>"));
-    assertTrue(response.contains("<li>start time: " + date + "</li>"));
-    assertTrue(response.contains("<li>end time: " + delay + "</li>"));
+    assertTrue(response.contains("<li>start time: " + start + "</li>"));
+    assertTrue(response.contains("<li>end time: " + end + "</li>"));
   }
 
   @Test
   void waitTwoSecs() throws IOException {
-    Date date = new Date();
-    Calendar calendar = Calendar.getInstance();
-    calendar.setTime(date);
     calendar.add(Calendar.SECOND, 2);
     Date delay = calendar.getTime();
+    String end = simpleDateFormat.format(delay);
 
     outputStream.write(("GET /ping/2 HTTP/1.1\r\n\r\n").getBytes());
     outputStream.flush();
     String response = parseInputStream(socket.getInputStream());
     assertTrue(response.contains("<h2>Ping</h2>"));
-    assertTrue(response.contains("<li>start time: " + date + "</li>"));
-    assertTrue(response.contains("<li>end time: " + delay + "</li>"));
+    assertTrue(response.contains("<li>start time: " + start + "</li>"));
+    assertTrue(response.contains("<li>end time: " + end + "</li>"));
   }
 
   @Test
   void concurrent() throws IOException {
-    Date date = new Date();
-    Calendar calendar = Calendar.getInstance();
-    calendar.setTime(date);
     calendar.add(Calendar.SECOND, 1);
     Date delay = calendar.getTime();
+    String end = simpleDateFormat.format(delay);
 
     class MyThread extends Thread {
       public void run() {
@@ -95,8 +104,8 @@ public class ConcurrencyTest {
 //          outputStream.flush();
 //          String response = parseInputStream(socket.getInputStream());
           assertTrue(response.contains("<h2>Ping</h2>"));
-          assertTrue(response.contains("<li>start time: " + date + "</li>"));
-          assertTrue(response.contains("<li>end time: " + delay + "</li>"));
+          assertTrue(response.contains("<li>start time: " + start + "</li>"));
+          assertTrue(response.contains("<li>end time: " + end + "</li>"));
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
@@ -111,8 +120,8 @@ public class ConcurrencyTest {
     outputStream.flush();
     String response = parseInputStream(socket.getInputStream());
     assertTrue(response.contains("<h2>Ping</h2>"));
-    assertTrue(response.contains("<li>start time: " + date + "</li>"));
-    assertTrue(response.contains("<li>end time: " + delay + "</li>"));
+    assertTrue(response.contains("<li>start time: " + start + "</li>"));
+    assertTrue(response.contains("<li>end time: " + end + "</li>"));
   }
 
   @AfterAll

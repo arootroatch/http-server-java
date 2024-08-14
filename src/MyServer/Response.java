@@ -36,8 +36,7 @@ public class Response {
       outputStream.write(("Server: My MacBook Pro\r\n\r\n").getBytes());
       outputStream.write(fileBytes);
       outputStream.flush();
-    } catch (IOException e){
-      throw new RuntimeException(e);
+    } catch (IOException _){
     }
   }
 

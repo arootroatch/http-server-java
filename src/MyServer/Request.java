@@ -2,6 +2,7 @@ package MyServer;
 
 import java.io.*;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -102,7 +103,9 @@ public class Request {
     } else if (resource.contains("/ping")) {
       boolean delayed = resource.split("/").length > 2;
       int delay = delayed ? Integer.parseInt(resource.split("/")[2]) : 0;
-      Date start = new Date();
+      String pattern = "yyyy-MM-dd hh:mm:ss";
+      SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+      String start = simpleDateFormat.format(new Date());
       try {
         Thread.sleep(delay * 1000L);
         sendFile(renderPingHTML(start), "html", outputStream);
