@@ -110,7 +110,6 @@ public class ConcurrencyTest {
     outputStream.write(("GET /ping/1 HTTP/1.1\r\n\r\n").getBytes());
     outputStream.flush();
     String response = parseInputStream(socket.getInputStream());
-    System.out.println(response);
     assertTrue(response.contains("<h2>Ping</h2>"));
     assertTrue(response.contains("<li>start time: " + date + "</li>"));
     assertTrue(response.contains("<li>end time: " + delay + "</li>"));

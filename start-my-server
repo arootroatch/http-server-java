@@ -1,0 +1,9 @@
+#!/bin/sh
+
+cd /Users/AlexRoot-Roatch/current-projects/http-server-java
+
+javac -d ./out ./src/MyServer/*.java
+
+cd out
+
+java MyServer.Main --args "$@"
