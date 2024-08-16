@@ -7,8 +7,8 @@
 
 (describe "Forms"
 
-  ;(before-all (helper/start-server "-p" "7654" "-r" "testroot"))
-  ;(after-all (helper/stop-server))
+  (before-all (helper/start-server "-p" "7654" "-r" "testroot"))
+  (after-all (helper/stop-server))
 
   (it "/form handles get form"
     (let [response (client/get "http://localhost:7654/form?foo=1&bar=2")
@@ -17,8 +17,8 @@
       (should-contain "<li>foo: 1</li>" body)
       (should-contain "<li>bar: 2</li>" body)))
 
-  (focus-it "/form handles post multipart form with file upload"
-    (let [response (client/post "http://localhost/form"
+  (it "/form handles post multipart form with file upload"
+    (let [response (client/post "http://localhost:7654/form"
                                 {:multipart [{:name "file"
                                               :content-type "image/jpg"
                                               :content (io/file "testroot/img/autobot.jpg")}]})
