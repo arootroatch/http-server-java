@@ -23,10 +23,12 @@ public class Request {
       throw new RuntimeException(e);
     }
 
-    if (line.contains("GET")){
-      parseGetRequest(line, request, br);
-    } else {
-      parsePostRequest(line, request, br);
+    if (line != null){
+      if (line.contains("GET")) {
+        parseGetRequest(line, request, br);
+      } else {
+        parsePostRequest(line, request, br);
+      }
     }
 
     return request.toString();

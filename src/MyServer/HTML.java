@@ -59,12 +59,12 @@ public class HTML {
   public static String postRequestHTML(String request) {
     String[] multiparts = request.split("\r\n\r\n");
     String[] metadata = multiparts[1].split("\r\n");
-    String fileName = metadata[1].split(";")[2].split("=")[1].split("\"")[1];
-    String contentType = metadata[2].split(": ")[1];
     int contentLength = Integer.parseInt(Arrays.stream(request.split("\r\n"))
         .filter(s -> s.contains("Content-Length")).toArray()[0].toString().split(":")[1].trim());
     String[] endOfInput = multiparts[2].split("\r\n");
     int footer = endOfInput[endOfInput.length - 1].getBytes().length;
+    String fileName = metadata[1].split(";")[2].split("=")[1].split("\"")[1];
+    String contentType = metadata[2].split(": ")[1];
     int fileSize = contentLength - footer - multiparts[1].getBytes().length - 8;
 
     return "<ul>" +
