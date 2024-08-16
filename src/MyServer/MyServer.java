@@ -51,27 +51,32 @@ public class MyServer {
 
   private void serve() {
     while (this.running) {
-      Socket client = null;
-      try {
-        client = this.serverSocket.accept();
-        Socket finalClient = client;
+      createRequestThread(openSocketConnection());
+    }
+  }
 
-        new Thread(() ->
-        {
-          handleRequest(finalClient, rootDir);
-          try {
-            finalClient.close();
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        }).start();
+  private void createRequestThread(Socket client) {
+    new Thread(() -> {
+      handleRequest(client, rootDir);
+      try {
+        client.close();
       } catch (IOException e) {
-        if (this.running) {
-          System.err.println("Socket error");
-          e.printStackTrace(System.err);
-        }
+        throw new RuntimeException(e);
+      }
+    }).start();
+  }
+
+  private Socket openSocketConnection() {
+    Socket client = null;
+    try {
+      client = this.serverSocket.accept();
+    } catch (IOException e) {
+      if (this.running) {
+        System.err.println("Socket error");
+        e.printStackTrace(System.err);
       }
     }
+    return client;
   }
 }
 

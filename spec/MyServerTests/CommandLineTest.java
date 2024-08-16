@@ -24,7 +24,7 @@ public class CommandLineTest {
   void start() {
     String[] args = {"-x"};
     Main.main(args);
-    assertTrue(outContent.toString().contains("MyServer"));
+    assertTrue(outContent.toString().contains("Example Server"));
     assertTrue(outContent.toString().contains("Running on port: 80"));
     assertTrue(outContent.toString().contains("Serving files from: "));
     assertTrue(outContent.toString().contains("testroot"));
@@ -69,7 +69,7 @@ public class CommandLineTest {
   void printConfig() {
     String[] args = {"-x"};
     Main.main(args);
-    assertTrue(outContent.toString().contains("MyServer"));
+    assertTrue(outContent.toString().contains("Example Server"));
     assertTrue(outContent.toString().contains("Running on port: 80\n"));
     assertTrue(outContent.toString().contains("Serving files from:"));
     assertTrue(outContent.toString().contains("testroot"));
@@ -79,7 +79,7 @@ public class CommandLineTest {
   void printConfigWithDirAndPort() {
     String[] args = {"-r", "root", "-p", "1234", "-x"};
     Main.main(args);
-    assertTrue(outContent.toString().contains("MyServer"));
+    assertTrue(outContent.toString().contains("Example Server"));
     assertTrue(outContent.toString().contains("Running on port: 1234\n"));
     assertTrue(outContent.toString().contains("Serving files from:"));
     assertTrue(outContent.toString().contains("root"));

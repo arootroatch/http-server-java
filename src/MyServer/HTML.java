@@ -1,9 +1,6 @@
 package MyServer;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -65,7 +62,7 @@ public class HTML {
     int footer = endOfInput[endOfInput.length - 1].getBytes().length;
     String fileName = metadata[1].split(";")[2].split("=")[1].split("\"")[1];
     String contentType = metadata[2].split(": ")[1];
-    int fileSize = contentLength - footer - multiparts[1].getBytes().length - 8;
+    int fileSize = contentLength - footer - multiparts[1].trim().getBytes().length - 8;
 
     return "<ul>" +
         "<li>file name: " + fileName + "</li>" +
@@ -74,3 +71,4 @@ public class HTML {
         "</ul>";
   }
 }
+
