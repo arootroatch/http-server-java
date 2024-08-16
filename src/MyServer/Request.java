@@ -12,16 +12,27 @@ import static MyServer.HTML.*;
 import static MyServer.Response.*;
 
 public class Request {
-  public static String parseGetRequest(InputStream inputStream) {
+  public static String parseRequest(InputStream inputStream) {
     BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
     StringBuilder request = new StringBuilder();
     String line;
+
     try {
       line = br.readLine();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
 
+    if (line.contains("GET")){
+      parseGetRequest(line, request, br);
+    } else {
+      parsePostRequest(line, request, br);
+    }
+
+    return request.toString();
+  }
+
+  private static void parseGetRequest(String line, StringBuilder request, BufferedReader br){
     while (line != null) {
       if (line.isBlank()) break;
       request.append(line).append("\r\n");
@@ -31,18 +42,34 @@ public class Request {
         throw new RuntimeException(e);
       }
     }
-    return request.toString();
   }
 
-  public static String parsePostRequest(InputStream inputStream, Integer contentLength) throws IOException {
-    InputStreamReader isr = new InputStreamReader(inputStream);
-    BufferedReader br = new BufferedReader(isr);
-    StringBuilder request = new StringBuilder();
-    char[] buffer = new char[contentLength];
-    int numRead = br.read(buffer, 0, contentLength);
-    request.append(buffer, 0, numRead);
+  private static void parsePostRequest(String line, StringBuilder request, BufferedReader br){
+    char[] buffer;
+    int contentLength = 0;
+    int numRead;
 
-    return request.toString();
+    while (line != null) {
+      request.append(line).append("\r\n");
+      try {
+        if (line.contains("Content-Length")) {
+          contentLength += Integer.parseInt(line.split(": ")[1]);
+          break;
+        } else line = br.readLine();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    if (contentLength > 0) {
+      buffer = new char[contentLength];
+      try {
+        numRead = br.read(buffer);
+        request.append(buffer, 0, numRead);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 
   public static String parseResource(String request) {
@@ -56,12 +83,12 @@ public class Request {
     InputStream inputStream;
     OutputStream outputStream;
     try {
-      inputStream =  client.getInputStream();
+      inputStream = client.getInputStream();
       outputStream = client.getOutputStream();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    String request = parseGetRequest(inputStream);
+    String request = parseRequest(inputStream);
     String resource = parseResource(request);
 
     if (resource.equals("/") || resource.equals("/hello")) {
@@ -84,11 +111,8 @@ public class Request {
     } else if (resource.contains("/form")) {
       try (FileInputStream file = new FileInputStream(rootDir + "/forms.html")) {
         if (request.contains("POST")) {
-          Integer contentLength = Integer.parseInt(Arrays.stream(request.split("\r\n"))
-              .filter(s -> s.contains("Content-Length")).toArray()[0].toString().split(":")[1].trim());
-          request = parsePostRequest(inputStream, contentLength);
           String html = parseHTML(file);
-          String addHTML = postRequestHTML(request, contentLength);
+          String addHTML = postRequestHTML(request);
           sendFile(html, "html", outputStream, addHTML);
 
         } else if (resource.contains("?")) {
@@ -103,7 +127,7 @@ public class Request {
     } else if (resource.contains("/ping")) {
       boolean delayed = resource.split("/").length > 2;
       int delay = delayed ? Integer.parseInt(resource.split("/")[2]) : 0;
-      String pattern = "yyyy-MM-dd hh:mm:ss";
+      String pattern = "yyyy-MM-dd HH:mm:ss";
       SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
       String start = simpleDateFormat.format(new Date());
       try {

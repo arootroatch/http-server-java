@@ -9,7 +9,7 @@ public class Print {
   }
 
   public static void printConfig(int port, String rootDir) {
-    System.out.println("MyServer");
+    System.out.println("Example Server");
     System.out.println("Running on port: " + port);
     System.out.println("Serving files from: " + rootDir);
   }

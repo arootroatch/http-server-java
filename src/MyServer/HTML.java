@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 
 public class HTML {
@@ -42,7 +43,7 @@ public class HTML {
   }
 
   public static String renderPingHTML(String start) {
-    String pattern = "yyyy-MM-dd hh:mm:ss";
+    String pattern = "yyyy-MM-dd HH:mm:ss";
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
     String endDate = simpleDateFormat.format(new Date());
 
@@ -55,13 +56,21 @@ public class HTML {
         "</html>";
   }
 
-  public static String postRequestHTML(String request, Integer contentLength) {
-    String[] fileInfo = request.substring(0, 130).split("\r\n")[1].split(";");
-    String fileName = fileInfo[2].split("=")[1];
+  public static String postRequestHTML(String request) {
+    String[] multiparts = request.split("\r\n\r\n");
+    String[] metadata = multiparts[1].split("\r\n");
+    String fileName = metadata[1].split(";")[2].split("=")[1].split("\"")[1];
+    String contentType = metadata[2].split(": ")[1];
+    int contentLength = Integer.parseInt(Arrays.stream(request.split("\r\n"))
+        .filter(s -> s.contains("Content-Length")).toArray()[0].toString().split(":")[1].trim());
+    String[] endOfInput = multiparts[2].split("\r\n");
+    int footer = endOfInput[endOfInput.length - 1].getBytes().length;
+    int fileSize = contentLength - footer - multiparts[1].getBytes().length - 8;
+
     return "<ul>" +
         "<li>file name: " + fileName + "</li>" +
-        "<li>content type: application/octet-stream</li>" +
-        "<li>file size: " + contentLength + "</li>" +
+        "<li>content type: " + contentType + "</li>" +
+        "<li>file size: " + fileSize + "</li>" +
         "</ul>";
   }
 }

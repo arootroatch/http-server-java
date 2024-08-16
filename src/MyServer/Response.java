@@ -12,7 +12,6 @@ public class Response {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-
     writeToOutputStream(filetype, outputStream, fileBytes);
   }
 
@@ -24,7 +23,7 @@ public class Response {
   public static void sendFile(String file, String filetype, OutputStream outputStream, String addHTML) {
     String newHTML = file.split("</html>")[0] + addHTML + "</html>";
     byte[] fileBytes = newHTML.getBytes();
-      writeToOutputStream(filetype, outputStream, fileBytes);
+    writeToOutputStream(filetype, outputStream, fileBytes);
   }
 
   private static void writeToOutputStream(String filetype, OutputStream outputStream, byte[] fileBytes) {
@@ -36,7 +35,8 @@ public class Response {
       outputStream.write(("Server: My MacBook Pro\r\n\r\n").getBytes());
       outputStream.write(fileBytes);
       outputStream.flush();
-    } catch (IOException _){
+    } catch (IOException e) {
+      //
     }
   }
 

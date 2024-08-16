@@ -1,3 +1,3 @@
 #!/bin/sh
 
-javac -d ./out/ ./src/MyServer/*.java
+javac --release 21 -d /Users/AlexRoot-Roatch/current-projects/http-server-java/out /Users/AlexRoot-Roatch/current-projects/http-server-java/src/MyServer/*.java

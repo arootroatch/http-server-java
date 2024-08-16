@@ -29,7 +29,7 @@ public class ConcurrencyTest {
   Calendar calendar;
 
   @BeforeAll
-  static void setup() throws IOException {
+  static void setup() {
     server = new MyServer(1238, "testroot");
     server.start();
 
@@ -38,7 +38,7 @@ public class ConcurrencyTest {
   @BeforeEach
   void dateSetup(){
     date = new Date();
-    pattern = "yyyy-MM-dd hh:mm:ss";
+    pattern = "yyyy-MM-dd HH:mm:ss";
     simpleDateFormat = new SimpleDateFormat(pattern);
     start = simpleDateFormat.format(date);
     calendar = Calendar.getInstance();

@@ -104,6 +104,12 @@ public class FormsTest {
 //    assertEquals("</html>\r\n", response.substring(i - 9));
 //  }
 
+  @Test
+  void post() throws IOException {
+    outputStream.write(("POST /form HTTP/1.1\r\n\r\n").getBytes());
+    outputStream.flush();
+  }
+
   @AfterAll
   static void teardown() {
     server.stop();

@@ -8,11 +8,11 @@
                  [compojure "1.6.1" :exclusions [ring/ring-core ring/ring-codec]]
                  [hiccup "1.0.5"]
                  [http-kit "2.3.0"]
-                 [org.clojure/clojure "1.10.1"]
+                 [org.clojure/clojure "1.11.1"]
                  [ring/ring "1.8.1"]
                  ]
-  :profiles {:dev {:dependencies [[speclj "3.3.2"]]}}
-  :plugins [[speclj "3.3.2"]]
+  :profiles {:dev {:dependencies [[speclj "3.4.6"]]}}
+  :plugins [[speclj "3.4.6"]]
   :test-paths ["spec"]
 
   )
