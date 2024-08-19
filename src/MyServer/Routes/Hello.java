@@ -1,13 +1,12 @@
 package MyServer.Routes;
 
+import MyServer.Route;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import static MyServer.Response.send404;
-import static MyServer.Response.sendFile;
-
-public class Hello {
+public class Hello implements Route {
   String rootDir;
   OutputStream outputStream;
 
@@ -16,7 +15,7 @@ public class Hello {
     this.outputStream = outputStream;
   }
 
-  public void serveHello(){
+  public void serve(){
     try (FileInputStream file = new FileInputStream(rootDir + "/index.html")) {
       sendFile(file, "html", outputStream);
     } catch (IOException e) {

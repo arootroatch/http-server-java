@@ -1,14 +1,15 @@
 package MyServer.Routes;
 
+import MyServer.Route;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 
 import static MyServer.DirectoryContents.getContentsOfDir;
-import static MyServer.Response.*;
 
-public class Folder {
+public class Folder implements Route {
   String rootDir;
   String resource;
   OutputStream outputStream;
@@ -30,7 +31,7 @@ public class Folder {
     } else if (contents.length == 0) {
       send404(outputStream);
     } else {
-      sendHTMLString(renderContentsAsHTML(resource, contents), outputStream);
+      sendHtmlString(renderContentsAsHTML(resource, contents), "html", outputStream);
     }
   }
 

@@ -1,11 +1,12 @@
 package MyServer.Routes;
 
+import MyServer.Route;
+
 import java.io.OutputStream;
 
 import static MyServer.DirectoryContents.getContentsOfDir;
-import static MyServer.Response.sendHTMLString;
 
-public class Listing {
+public class Listing implements Route {
   String rootDir;
   OutputStream outputStream;
   String resource;
@@ -16,14 +17,14 @@ public class Listing {
     this.resource = resource;
   }
 
-  public void serveListing() {
+  public void serve() {
     String[] split = resource.split("/");
     String dir;
     if (split.length > 2) {
       dir = resource.split("/")[2];
       Object[] contents = getContentsOfDir(rootDir + "/" + dir);
-      sendHTMLString(renderContentsAsHTML("/" + dir, contents), outputStream);
-    } else sendHTMLString(renderContentsAsHTML("/", getContentsOfDir(rootDir)), outputStream);
+      sendHtmlString(renderContentsAsHTML("/" + dir, contents), "html", outputStream);
+    } else sendHtmlString(renderContentsAsHTML("/", getContentsOfDir(rootDir)), "html", outputStream);
   }
 
   private String renderContentsAsHTML(String dir, Object[] contents) {

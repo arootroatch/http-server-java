@@ -24,16 +24,16 @@ public class Request {
     String resource = parseResource(request);
 
     if (resource.equals("/hello")) {
-      new Hello(rootDir, outputStream).serveHello();
+      new Hello(rootDir, outputStream).serve();
 
     } else if (resource.contains("/listing")) {
-      new Listing(rootDir, outputStream, resource).serveListing();
+      new Listing(rootDir, outputStream, resource).serve();
 
     } else if (resource.contains("/form")) {
-      new Form(rootDir, request, resource, outputStream).serveForm();
+      new Form(rootDir, request, resource, outputStream).serve();
 
     } else if (resource.contains("/ping")) {
-      new Ping(resource, outputStream).ping();
+      new Ping(resource, outputStream).serve();
 
     } else if (!resource.contains(".")) {
       new Folder(rootDir, resource, outputStream).serve();

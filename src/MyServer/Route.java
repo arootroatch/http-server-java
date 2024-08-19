@@ -4,9 +4,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class Response {
-  public static void sendFile(FileInputStream file, String filetype, OutputStream outputStream) {
-    byte[] fileBytes = null;
+public interface Route {
+
+  void serve();
+
+  default void sendFile(FileInputStream file, String filetype, OutputStream outputStream) {
+    byte[] fileBytes;
     try {
       fileBytes = file.readAllBytes();
     } catch (IOException e) {
@@ -15,18 +18,12 @@ public class Response {
     writeToOutputStream(filetype, outputStream, fileBytes);
   }
 
-  public static void sendFile(String file, String filetype, OutputStream outputStream) {
+  default void sendHtmlString(String file, String filetype, OutputStream outputStream) {
     byte[] fileBytes = file.getBytes();
     writeToOutputStream(filetype, outputStream, fileBytes);
   }
 
-  public static void sendFile(String file, String filetype, OutputStream outputStream, String addHTML) {
-    String newHTML = file.split("</html>")[0] + addHTML + "</html>";
-    byte[] fileBytes = newHTML.getBytes();
-    writeToOutputStream(filetype, outputStream, fileBytes);
-  }
-
-  private static void writeToOutputStream(String filetype, OutputStream outputStream, byte[] fileBytes) {
+  private void writeToOutputStream(String filetype, OutputStream outputStream, byte[] fileBytes) {
     try {
       int byteCount = fileBytes.length;
       outputStream.write(("HTTP/1.1 200 OK\r\n").getBytes());
@@ -36,11 +33,11 @@ public class Response {
       outputStream.write(fileBytes);
       outputStream.flush();
     } catch (IOException e) {
-      //
+      throw new RuntimeException(e);
     }
   }
 
-  private static String setContentType(String filetype) {
+  private String setContentType(String filetype) {
     return switch (filetype) {
       case "jpg", "jpeg" -> "Content-Type: image/jpeg\r\n";
       case "txt", "html" -> "Content-Type: text/html\r\n";
@@ -50,19 +47,7 @@ public class Response {
     };
   }
 
-  public static void sendHTMLString(String html, OutputStream outputStream) {
-    try {
-      outputStream.write(("HTTP/1.1 200 OK\r\n").getBytes());
-      outputStream.write(("Content-Type: text/html\r\n").getBytes());
-      outputStream.write(("Server: My MacBook Pro\r\n\r\n").getBytes());
-      outputStream.write(html.getBytes());
-      outputStream.flush();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  public static void send404(OutputStream outputStream) {
+  default void send404(OutputStream outputStream) {
     try {
       outputStream.write(("HTTP/1.1 404 Not Found\r\n").getBytes());
       outputStream.write(("Content-Type: text/html\r\n").getBytes());

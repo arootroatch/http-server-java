@@ -1,12 +1,12 @@
 package MyServer.Routes;
 
+import MyServer.Route;
+
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import static MyServer.Response.sendFile;
-
-public class Ping {
+public class Ping implements Route {
   boolean delayed;
   int delay;
   String pattern = "yyyy-MM-dd HH:mm:ss";
@@ -22,10 +22,10 @@ public class Ping {
     this.outputStream = outputStream;
   }
 
-  public void ping() {
+  public void serve() {
     try {
       Thread.sleep(delay * 1000L);
-      sendFile(renderPingHTML(start), "html", this.outputStream);
+      sendHtmlString(renderPingHTML(start), "html", outputStream);
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }

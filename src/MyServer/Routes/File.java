@@ -1,13 +1,12 @@
 package MyServer.Routes;
 
+import MyServer.Route;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import static MyServer.Response.send404;
-import static MyServer.Response.sendFile;
-
-public class File {
+public class File implements Route {
   String rootDir;
   String resource;
   OutputStream outputStream;

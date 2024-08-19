@@ -1,12 +1,11 @@
 package MyServer.Routes;
 
+import MyServer.Route;
+
 import java.io.*;
 import java.util.Arrays;
 
-import static MyServer.Response.send404;
-import static MyServer.Response.sendFile;
-
-public class Form {
+public class Form implements Route {
   String rootDir;
   String request;
   OutputStream outputStream;
@@ -24,14 +23,16 @@ public class Form {
     this.outputStream = outputStream;
   }
 
-  public void serveForm(){
+  public void serve(){
     if (request.contains("POST")) {
       addHTML = postRequestHTML();
-      sendFile(html, "html", outputStream, addHTML);
+      String newHTML = html.split("</html>")[0] + addHTML + "</html>";
+      sendHtmlString(newHTML, "html", outputStream);
     } else if (this.resource.contains("?")) {
       addHTML = queryParamsToHTML(getQueryParams(resource));
-      sendFile(html, "html", this.outputStream, addHTML);
-    } else sendFile(html, "html", outputStream);
+      String newHTML = html.split("</html>")[0] + addHTML + "</html>";
+      sendHtmlString(newHTML, "html", outputStream);
+    } else sendHtmlString(html, "html", outputStream);
   }
 
 
