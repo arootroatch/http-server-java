@@ -5,7 +5,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import static MyServer.Print.printConfig;
-import static MyServer.Request.handleRequest;
+import static MyServer.Request.handleConnection;
 
 public class MyServer {
   ServerSocket serverSocket;
@@ -58,7 +58,7 @@ public class MyServer {
 
   private void createRequestThread(Socket client) {
     new Thread(() -> {
-      handleRequest(client, rootDir);
+      handleConnection(client, rootDir);
       try {
         client.close();
       } catch (IOException e) {
