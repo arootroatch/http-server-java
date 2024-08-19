@@ -1,6 +1,7 @@
 package MyServer;
 
 import MyServer.Routes.Form;
+import MyServer.Routes.Hello;
 import MyServer.Routes.Listing;
 import MyServer.Routes.Ping;
 
@@ -30,11 +31,8 @@ public class Request {
     String resource = parseResource(request);
 
     if (resource.equals("/hello")) {
-      try (FileInputStream file = new FileInputStream(rootDir + "/index.html")) {
-        sendFile(file, "html", outputStream);
-      } catch (IOException e) {
-        send404(outputStream);
-      }
+      new Hello(rootDir, outputStream).serveHello();
+
     } else if (resource.contains("/listing")) {
       new Listing(rootDir, outputStream, resource).serveListing();
 
