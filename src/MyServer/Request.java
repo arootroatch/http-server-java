@@ -1,14 +1,14 @@
 package MyServer;
 
+import MyServer.Routes.Form;
+import MyServer.Routes.Ping;
+
 import java.io.*;
 import java.net.Socket;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Date;
 
 import static MyServer.DirectoryContents.getContentsOfDir;
 import static MyServer.DirectoryContents.renderContentsAsHTML;
-import static MyServer.HTML.*;
 import static MyServer.Response.*;
 
 public class Request {
@@ -111,33 +111,10 @@ public class Request {
       } else sendHTMLString(renderContentsAsHTML(getContentsOfDir(rootDir)), outputStream);
 
     } else if (resource.contains("/form")) {
-      try (FileInputStream file = new FileInputStream(rootDir + "/forms.html")) {
-        if (request.contains("POST")) {
-          String html = parseHTML(file);
-          String addHTML = postRequestHTML(request);
-          sendFile(html, "html", outputStream, addHTML);
-
-        } else if (resource.contains("?")) {
-          String html = parseHTML(file);
-          String addHTML = queryParamsToHTML(getQueryParams(resource));
-          sendFile(html, "html", outputStream, addHTML);
-        } else sendFile(file, "html", outputStream);
-      } catch (IOException e) {
-        send404(outputStream);
-      }
+      new Form(rootDir, request, resource, outputStream).serveForm();
 
     } else if (resource.contains("/ping")) {
-      boolean delayed = resource.split("/").length > 2;
-      int delay = delayed ? Integer.parseInt(resource.split("/")[2]) : 0;
-      String pattern = "yyyy-MM-dd HH:mm:ss";
-      SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
-      String start = simpleDateFormat.format(new Date());
-      try {
-        Thread.sleep(delay * 1000L);
-        sendFile(renderPingHTML(start), "html", outputStream);
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
+      new Ping(resource, outputStream).ping();
 
     } else if (!resource.contains(".")) {
       Object[] contents = getContentsOfDir(rootDir + resource);

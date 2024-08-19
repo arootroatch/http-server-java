@@ -51,7 +51,8 @@ public class MyServer {
 
   private void serve() {
     while (this.running) {
-      createRequestThread(openSocketConnection());
+      Socket client = openSocketConnection();
+      if (client != null) createRequestThread(client);
     }
   }
 
@@ -69,7 +70,7 @@ public class MyServer {
   private Socket openSocketConnection() {
     Socket client = null;
     try {
-      client = this.serverSocket.accept();
+     client = this.serverSocket.accept();
     } catch (IOException e) {
       if (this.running) {
         System.err.println("Socket error");

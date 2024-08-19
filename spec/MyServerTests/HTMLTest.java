@@ -2,8 +2,8 @@ package MyServerTests;
 
 import org.junit.jupiter.api.Test;
 
-import static MyServer.HTML.getQueryParams;
-import static MyServer.HTML.queryParamsToHTML;
+import static MyServer.Routes.Form.getQueryParams;
+import static MyServer.Routes.Form.queryParamsToHTML;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
