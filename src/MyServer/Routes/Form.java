@@ -4,6 +4,7 @@ import MyServer.Route;
 
 import java.io.*;
 import java.util.Arrays;
+import java.util.HashMap;
 
 public class Form implements Route {
   String rootDir;
@@ -14,11 +15,11 @@ public class Form implements Route {
   FileInputStream file;
   String addHTML;
 
-  public Form(String rootDir, String request, String resource, OutputStream outputStream) {
-    this.rootDir = rootDir;
+  public Form(HashMap<String, String> connData, OutputStream outputStream) {
+    this.rootDir = connData.get("rootDir");
     this.file = getFile();
-    this.request = request;
-    this.resource = resource;
+    this.request = connData.get("request");
+    this.resource = connData.get("resource");
     this.html = parseHTML();
     this.outputStream = outputStream;
   }
@@ -49,7 +50,7 @@ public class Form implements Route {
     InputStreamReader isr = new InputStreamReader(file);
     BufferedReader br = new BufferedReader(isr);
     StringBuilder html = new StringBuilder();
-    String line = null;
+    String line;
     try {
       line = br.readLine();
     } catch (IOException e) {

@@ -3,6 +3,7 @@ package MyServer.Routes;
 import MyServer.Route;
 
 import java.io.OutputStream;
+import java.util.HashMap;
 
 import static MyServer.DirectoryContents.getContentsOfDir;
 
@@ -11,10 +12,10 @@ public class Listing implements Route {
   OutputStream outputStream;
   String resource;
 
-  public Listing(String rootDir, OutputStream outputStream, String resource) {
-    this.rootDir = rootDir;
+  public Listing(HashMap<String, String> connData, OutputStream outputStream) {
+    this.rootDir = connData.get("rootDir");
     this.outputStream = outputStream;
-    this.resource = resource;
+    this.resource = connData.get("resource");
   }
 
   public void serve() {
@@ -24,7 +25,7 @@ public class Listing implements Route {
       dir = resource.split("/")[2];
       Object[] contents = getContentsOfDir(rootDir + "/" + dir);
       sendHtmlString(renderContentsAsHTML("/" + dir, contents), "html", outputStream);
-    } else sendHtmlString(renderContentsAsHTML("/", getContentsOfDir(rootDir)), "html", outputStream);
+    } else sendHtmlString(renderContentsAsHTML(rootDir, getContentsOfDir(rootDir)), "html", outputStream);
   }
 
   private String renderContentsAsHTML(String dir, Object[] contents) {
@@ -44,12 +45,12 @@ public class Listing implements Route {
   }
 
   private String setFileLi(String dir, Object i) {
-    if (dir.equals("/")) return String.format("<li><a href=\"/%s\">%s</a></li>", i, i);
+    if (dir.equals(rootDir)) return String.format("<li><a href=\"/%s\">%s</a></li>", i, i);
     else return String.format("<li><a href=\"%s/%s\">%s</a></li>", dir, i, i);
   }
 
   private String setFolderLi(String dir, Object i){
-    if (dir.equals("/")) return String.format("<li><a href=\"/listing/%s\">%s</a></li>", i, i);
+    if (dir.equals(rootDir)) return String.format("<li><a href=\"/listing/%s\">%s</a></li>", i, i);
     else return String.format("<li><a href=\"/listing/%s/%s\">%s</a></li>", dir, i, i);
   }
 }

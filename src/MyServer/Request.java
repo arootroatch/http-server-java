@@ -5,6 +5,7 @@ import MyServer.Routes.File;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.HashMap;
 
 public class Request {
   public static void handleConnection(Socket client, String rootDir) {
@@ -23,24 +24,33 @@ public class Request {
   private static void handleRequest(String request, OutputStream outputStream, String rootDir){
     String resource = parseResource(request);
 
+    HashMap<String, String> connData = new HashMap<>();
+    connData.put("resource", resource);
+    connData.put("request", request);
+    connData.put("rootDir", rootDir);
+
     if (resource.equals("/hello")) {
-      new Hello(rootDir, outputStream).serve();
+      new Hello(connData, outputStream).serve();
 
     } else if (resource.contains("/listing")) {
-      new Listing(rootDir, outputStream, resource).serve();
+      new Listing(connData, outputStream).serve();
 
     } else if (resource.contains("/form")) {
-      new Form(rootDir, request, resource, outputStream).serve();
+      new Form(connData, outputStream).serve();
 
     } else if (resource.contains("/ping")) {
       new Ping(resource, outputStream).serve();
 
     } else if (!resource.contains(".")) {
-      new Folder(rootDir, resource, outputStream).serve();
+      new Folder(connData, outputStream).serve();
 
     } else {
-      new File(rootDir, resource, outputStream).serve();
+      new File(connData, outputStream).serve();
     }
+  }
+
+  private void serveResponse(Route route){
+    route.serve();
   }
 
   private static String parseRequest(InputStream inputStream) {

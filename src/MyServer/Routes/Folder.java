@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.HashMap;
 
 import static MyServer.DirectoryContents.getContentsOfDir;
 
@@ -14,9 +15,9 @@ public class Folder implements Route {
   String resource;
   OutputStream outputStream;
 
-  public Folder(String rootDir, String resource, OutputStream outputStream){
-    this.rootDir = rootDir;
-    this.resource = resource;
+  public Folder(HashMap<String, String> connData, OutputStream outputStream){
+    this.rootDir = connData.get("rootDir");
+    this.resource = connData.get("resource");
     this.outputStream = outputStream;
   }
 

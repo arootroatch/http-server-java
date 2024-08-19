@@ -5,15 +5,16 @@ import MyServer.Route;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.HashMap;
 
 public class File implements Route {
   String rootDir;
   String resource;
   OutputStream outputStream;
 
-  public File(String rootDir, String resource, OutputStream outputStream){
-    this.rootDir = rootDir;
-    this.resource = resource;
+  public File(HashMap<String, String> connData, OutputStream outputStream){
+    this.rootDir = connData.get("rootDir");
+    this.resource = connData.get("resource");
     this.outputStream = outputStream;
   }
 
