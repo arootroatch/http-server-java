@@ -5,8 +5,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 
 import static MyServer.DirectoryContents.getContentsOfDir;
-import static MyServer.DirectoryContents.renderContentsAsHTML;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class DirectoryContentsTest {
@@ -26,17 +24,5 @@ public class DirectoryContentsTest {
     assertTrue(Arrays.toString(files).contains("autobot.png"));
     assertTrue(Arrays.toString(files).contains("decepticon.jpg"));
     assertTrue(Arrays.toString(files).contains("decepticon.png"));
-  }
-
-  @Test
-  void createHTML() {
-    String html = renderContentsAsHTML(getContentsOfDir("testroot"));
-    int i = html.length();
-    assertEquals("<ul>", html.substring(0, 4));
-    assertEquals("</ul>\r\n", html.substring(i - 7));
-    assertTrue(html.contains("<li><a href=\"/index.html\">index.html</a></li>"));
-    assertTrue(html.contains("<li><a href=\"/forms.html\">forms.html</a></li>"));
-    assertTrue(html.contains("<li><a href=\"/hello.pdf\">hello.pdf</a></li>"));
-    assertTrue(html.contains("<li><a href=\"/listing/img\">img</a></li>"));
   }
 }

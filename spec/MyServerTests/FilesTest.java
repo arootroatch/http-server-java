@@ -25,7 +25,6 @@ public class FilesTest {
   static void setup() throws IOException {
     server = new MyServer(1235, "testroot");
     server.start();
-
   }
 
   @BeforeEach
@@ -56,7 +55,6 @@ public class FilesTest {
     String response = parseInputStream(socket.getInputStream());
     String body = response.split("\r\n\r\n")[1];
     int i = body.length();
-    System.out.println(response);
 
     assertEquals("<ul>", body.substring(0, 4));
     assertEquals("</ul>\r\n", body.substring(i - 7));

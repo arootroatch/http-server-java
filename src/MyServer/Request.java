@@ -5,11 +5,6 @@ import MyServer.Routes.File;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.Arrays;
-
-import static MyServer.DirectoryContents.getContentsOfDir;
-import static MyServer.DirectoryContents.renderContentsAsHTML;
-import static MyServer.Response.*;
 
 public class Request {
   public static void handleConnection(Socket client, String rootDir) {

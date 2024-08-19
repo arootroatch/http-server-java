@@ -6,7 +6,6 @@ import java.io.OutputStream;
 import java.util.Arrays;
 
 import static MyServer.DirectoryContents.getContentsOfDir;
-import static MyServer.DirectoryContents.renderContentsAsHTML;
 import static MyServer.Response.*;
 
 public class Folder {
@@ -33,5 +32,21 @@ public class Folder {
     } else {
       sendHTMLString(renderContentsAsHTML(resource, contents), outputStream);
     }
+  }
+
+  private String renderContentsAsHTML(String dir, Object[] contents) {
+    StringBuilder html = new StringBuilder();
+    html.append("<ul>");
+    for (Object i : contents) {
+      String li;
+      if (i.toString().contains(".")) {
+        li = String.format("<li><a href=\"%s/%s\">%s</a></li>", dir, i, i);
+      } else {
+        li = String.format("<li><a href=\"/%s/%s\">%s</a></li>", dir, i, i);
+      }
+      html.append(li);
+    }
+    html.append("</ul>");
+    return html.toString();
   }
 }

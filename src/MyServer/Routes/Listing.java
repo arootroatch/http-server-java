@@ -3,7 +3,6 @@ package MyServer.Routes;
 import java.io.OutputStream;
 
 import static MyServer.DirectoryContents.getContentsOfDir;
-import static MyServer.DirectoryContents.renderContentsAsHTML;
 import static MyServer.Response.sendHTMLString;
 
 public class Listing {
@@ -24,6 +23,32 @@ public class Listing {
       dir = resource.split("/")[2];
       Object[] contents = getContentsOfDir(rootDir + "/" + dir);
       sendHTMLString(renderContentsAsHTML("/" + dir, contents), outputStream);
-    } else sendHTMLString(renderContentsAsHTML(getContentsOfDir(rootDir)), outputStream);
+    } else sendHTMLString(renderContentsAsHTML("/", getContentsOfDir(rootDir)), outputStream);
+  }
+
+  private String renderContentsAsHTML(String dir, Object[] contents) {
+    StringBuilder html = new StringBuilder();
+    html.append("<ul>");
+    for (Object i : contents) {
+      String li;
+      if (i.toString().contains(".")) {
+        li = setFileLi(dir, i);
+      } else {
+        li = setFolderLi(dir, i);
+      }
+      html.append(li);
+    }
+    html.append("</ul>");
+    return html.toString();
+  }
+
+  private String setFileLi(String dir, Object i) {
+    if (dir.equals("/")) return String.format("<li><a href=\"/%s\">%s</a></li>", i, i);
+    else return String.format("<li><a href=\"%s/%s\">%s</a></li>", dir, i, i);
+  }
+
+  private String setFolderLi(String dir, Object i){
+    if (dir.equals("/")) return String.format("<li><a href=\"/listing/%s\">%s</a></li>", i, i);
+    else return String.format("<li><a href=\"/listing/%s/%s\">%s</a></li>", dir, i, i);
   }
 }
