@@ -1,9 +1,7 @@
 package MyServer;
 
-import MyServer.Routes.Form;
-import MyServer.Routes.Hello;
-import MyServer.Routes.Listing;
-import MyServer.Routes.Ping;
+import MyServer.Routes.*;
+import MyServer.Routes.File;
 
 import java.io.*;
 import java.net.Socket;
@@ -43,26 +41,10 @@ public class Request {
       new Ping(resource, outputStream).ping();
 
     } else if (!resource.contains(".")) {
-      Object[] contents = getContentsOfDir(rootDir + resource);
-      if (Arrays.asList(contents).contains("index.html")) {
-        try (FileInputStream file = new FileInputStream(rootDir + resource + "/index.html")) {
-          sendFile(file, "html", outputStream);
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      } else if (contents.length == 0) {
-        send404(outputStream);
-      } else {
-        sendHTMLString(renderContentsAsHTML(resource, contents), outputStream);
-      }
+      new Folder(rootDir, resource, outputStream).serve();
 
     } else {
-      try (FileInputStream file = new FileInputStream(rootDir + resource)) {
-        String filetype = resource.split("\\.")[1];
-        sendFile(file, filetype, outputStream);
-      } catch (IOException e) {
-        send404(outputStream);
-      }
+      new File(rootDir, resource, outputStream).serve();
     }
   }
 
