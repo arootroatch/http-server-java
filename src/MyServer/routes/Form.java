@@ -1,10 +1,13 @@
-package MyServer.Routes;
+package MyServer.routes;
 
 import MyServer.Route;
 
 import java.io.*;
 import java.util.Arrays;
 import java.util.HashMap;
+
+import static MyServer.routes.Utils.send404;
+import static MyServer.routes.Utils.sendHtmlString;
 
 public class Form implements Route {
   String rootDir;
@@ -16,12 +19,14 @@ public class Form implements Route {
   String addHTML;
 
   public Form(HashMap<String, String> connData, OutputStream outputStream) {
-    this.rootDir = connData.get("rootDir");
-    this.file = getFile();
-    this.request = connData.get("request");
     this.resource = connData.get("resource");
-    this.html = parseHTML();
-    this.outputStream = outputStream;
+    if (resource.contains("form")){
+      this.rootDir = connData.get("rootDir");
+      this.file = getFile();
+      this.request = connData.get("request");
+      this.html = parseHTML();
+      this.outputStream = outputStream;
+    }
   }
 
   public void serve(){

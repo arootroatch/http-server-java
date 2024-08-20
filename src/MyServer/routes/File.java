@@ -1,4 +1,4 @@
-package MyServer.Routes;
+package MyServer.routes;
 
 import MyServer.Route;
 
@@ -6,6 +6,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;
+
+import static MyServer.routes.Utils.send404;
+import static MyServer.routes.Utils.sendFile;
 
 public class File implements Route {
   String rootDir;

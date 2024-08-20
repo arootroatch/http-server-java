@@ -1,4 +1,4 @@
-package MyServer;
+package MyServer.routes;
 
 import java.io.File;
 import java.util.Arrays;

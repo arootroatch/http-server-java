@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 
-import static MyServer.DirectoryContents.getContentsOfDir;
+import static MyServer.routes.DirectoryContents.getContentsOfDir;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class DirectoryContentsTest {

@@ -1,10 +1,13 @@
-package MyServer.Routes;
+package MyServer.routes;
 
 import MyServer.Route;
 
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+
+import static MyServer.routes.Utils.sendHtmlString;
 
 public class Ping implements Route {
   boolean delayed;
@@ -14,9 +17,10 @@ public class Ping implements Route {
   String start;
   OutputStream outputStream;
 
-  public Ping(String resource, OutputStream outputStream) {
+  public Ping(HashMap<String, String> connData, OutputStream outputStream) {
+    String resource = connData.get("resource");
     this.delayed = resource.split("/").length > 2;
-    this.delay = delayed ? Integer.parseInt(resource.split("/")[2]) : 0;
+    this.delay = delayed && resource.contains("ping") ? Integer.parseInt(resource.split("/")[2]) : 0;
     this.simpleDateFormat = new SimpleDateFormat(this.pattern);
     this.start = simpleDateFormat.format(new Date());
     this.outputStream = outputStream;

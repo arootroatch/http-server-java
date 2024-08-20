@@ -1,4 +1,4 @@
-package MyServer.Routes;
+package MyServer.routes;
 
 import MyServer.Route;
 
@@ -8,7 +8,8 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import static MyServer.DirectoryContents.getContentsOfDir;
+import static MyServer.routes.DirectoryContents.getContentsOfDir;
+import static MyServer.routes.Utils.*;
 
 public class Folder implements Route {
   String rootDir;

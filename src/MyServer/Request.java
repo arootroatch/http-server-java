@@ -1,13 +1,17 @@
 package MyServer;
 
-import MyServer.Routes.*;
-import MyServer.Routes.File;
+import MyServer.routes.*;
+import MyServer.routes.File;
 
 import java.io.*;
 import java.net.Socket;
 import java.util.HashMap;
 
-public class Request {
+import static MyServer.routes.RouteMap.getRoutes;
+
+public final class Request {
+  private Request(){}
+
   public static void handleConnection(Socket client, String rootDir) {
     InputStream inputStream;
     OutputStream outputStream;
@@ -21,36 +25,28 @@ public class Request {
     handleRequest(request, outputStream, rootDir);
   }
 
-  private static void handleRequest(String request, OutputStream outputStream, String rootDir){
+  private static void handleRequest(String request, OutputStream outputStream, String rootDir) {
     String resource = parseResource(request);
+    String resourceStart = resource.split("[?/]").length > 0 ? resource.split("[?/]")[1] : "";
+    String route = "/" + resourceStart;
+    HashMap<String, String> connData = bundleConnData(request, resource, rootDir);
+    HashMap<String, Route> routes = getRoutes(connData, outputStream);
 
-    HashMap<String, String> connData = new HashMap<>();
-    connData.put("resource", resource);
-    connData.put("request", request);
-    connData.put("rootDir", rootDir);
-
-    if (resource.equals("/hello")) {
-      new Hello(connData, outputStream).serve();
-
-    } else if (resource.contains("/listing")) {
-      new Listing(connData, outputStream).serve();
-
-    } else if (resource.contains("/form")) {
-      new Form(connData, outputStream).serve();
-
-    } else if (resource.contains("/ping")) {
-      new Ping(resource, outputStream).serve();
-
+    if (routes.containsKey(route)) {
+      routes.get(route).serve();
     } else if (!resource.contains(".")) {
       new Folder(connData, outputStream).serve();
-
     } else {
       new File(connData, outputStream).serve();
     }
   }
 
-  private void serveResponse(Route route){
-    route.serve();
+  private static HashMap<String, String> bundleConnData(String request, String resource, String rootDir) {
+    HashMap<String, String> connData = new HashMap<>();
+    connData.put("resource", resource);
+    connData.put("request", request);
+    connData.put("rootDir", rootDir);
+    return connData;
   }
 
   private static String parseRequest(InputStream inputStream) {
@@ -64,7 +60,7 @@ public class Request {
       throw new RuntimeException(e);
     }
 
-    if (line != null){
+    if (line != null) {
       if (line.contains("GET")) {
         parseGetRequest(line, request, br);
       } else {
@@ -75,7 +71,7 @@ public class Request {
     return request.toString();
   }
 
-  private static void parseGetRequest(String line, StringBuilder request, BufferedReader br){
+  private static void parseGetRequest(String line, StringBuilder request, BufferedReader br) {
     while (line != null) {
       if (line.isBlank()) break;
       request.append(line).append("\r\n");
@@ -87,7 +83,7 @@ public class Request {
     }
   }
 
-  private static void parsePostRequest(String line, StringBuilder request, BufferedReader br){
+  private static void parsePostRequest(String line, StringBuilder request, BufferedReader br) {
     char[] buffer;
     int contentLength = 0;
     int numRead;
