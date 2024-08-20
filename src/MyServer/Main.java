@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Objects;
 
 public class Main {
-  static HashMap<String, Route> routes = new HashMap<>();
+  private static final HashMap<String, Route> routes = new HashMap<>();
 
   public static void main(String[] args) {
     int port = setPort(args);

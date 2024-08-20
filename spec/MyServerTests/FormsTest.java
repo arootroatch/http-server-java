@@ -85,26 +85,26 @@ public class FormsTest {
 
   @Test
   void post() throws IOException {
-    try (FileInputStream file = new FileInputStream("testroot/img/autobot.jpg")){
-      outputStream.write(("POST /form HTTP/1.1\r\n").getBytes());
-      outputStream.write(("Content-Length: 58638\r\n\r\n").getBytes());
-      outputStream.write(("------WebKitFormBoundaryz3skuKJCdTzwsajI\r\n").getBytes());
-      outputStream.write(("Content-Disposition: form-data; name=\"file\"; filename=\"autobot.jpg\"\r\n").getBytes());
-      outputStream.write(("Content-Type: image/jpeg\r\n\r\n").getBytes());
-      outputStream.write(file.readAllBytes());
-      outputStream.write(("\r\n").getBytes());
-      outputStream.write(("------WebKitFormBoundaryz3skuKJCdTzwsajI--\r\n\r\n").getBytes());
-      outputStream.flush();
+    FileInputStream file = new FileInputStream("testroot/img/autobot.jpg");
+    outputStream.write(("POST /form HTTP/1.1\r\n").getBytes());
+    outputStream.write(("Content-Length: 58638\r\n\r\n").getBytes());
+    outputStream.write(("------WebKitFormBoundaryz3skuKJCdTzwsajI\r\n").getBytes());
+    outputStream.write(("Content-Disposition: form-data; name=\"file\"; filename=\"autobot.jpg\"\r\n").getBytes());
+    outputStream.write(("Content-Type: image/jpeg\r\n\r\n").getBytes());
+    outputStream.write(file.readAllBytes());
+    outputStream.write(("\r\n").getBytes());
+    outputStream.write(("------WebKitFormBoundaryz3skuKJCdTzwsajI--\r\n\r\n").getBytes());
+    outputStream.flush();
 
-      String response = parseInputStream(socket.getInputStream());
-      int i = response.length();
+    String response = parseInputStream(socket.getInputStream());
+    int i = response.length();
 
-      assertTrue(response.contains("<h2>POST Form</h2>"));
-      assertTrue(response.contains("<li>file name: autobot.jpg</li>"));
-      assertTrue(response.contains("<li>content type: image/jpeg</li>"));
-      assertTrue(response.contains("<li>file size: 58453</li>"));
-      assertEquals("</html>\r\n", response.substring(i - 9));
-    }
+    assertTrue(response.contains("<h2>POST Form</h2>"));
+    assertTrue(response.contains("<li>file name: autobot.jpg</li>"));
+    assertTrue(response.contains("<li>content type: image/jpeg</li>"));
+    assertTrue(response.contains("<li>file size: 58453</li>"));
+    assertEquals("</html>\r\n", response.substring(i - 9));
+    file.close();
   }
 
   @AfterAll
