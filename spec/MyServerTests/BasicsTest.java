@@ -1,6 +1,7 @@
 package MyServerTests;
 
 import MyServer.MyServer;
+import MyServer.Route;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.HashMap;
 
 import static MyServerTests.URLConnection.parseInputStream;
 import static org.junit.jupiter.api.Assertions.*;
@@ -18,10 +20,11 @@ public class BasicsTest {
   static MyServer server;
   static Socket socket;
   static OutputStream outputStream;
+  static HashMap<String, Route> routes = new HashMap<>();
 
   @BeforeAll
   static void setup() throws IOException {
-    server = new MyServer(1234, "testroot");
+    server = new MyServer(1234, "testroot", routes);
     server.start();
 
     socket = new Socket("127.0.0.1", 1234);

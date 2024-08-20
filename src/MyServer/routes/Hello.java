@@ -14,12 +14,13 @@ public class Hello implements Route {
   String rootDir;
   OutputStream outputStream;
 
-  public Hello(HashMap<String, String> connData, OutputStream outputStream){
-    this.rootDir = connData.get("rootDir");
-    this.outputStream = outputStream;
+  public Hello() {
   }
 
-  public void serve(){
+  public void serve(HashMap<String, String> connData, OutputStream outputStream) {
+    this.rootDir = connData.get("rootDir");
+    this.outputStream = outputStream;
+
     try (FileInputStream file = new FileInputStream(rootDir + "/index.html")) {
       sendFile(file, "html", outputStream);
     } catch (IOException e) {

@@ -3,6 +3,7 @@ package MyServer;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
 
 import static MyServer.Print.printConfig;
 import static MyServer.Request.handleConnection;
@@ -13,10 +14,12 @@ public class MyServer {
   private Thread thread;
   private final int port;
   private final String rootDir;
+  private final HashMap<String, Route> routes;
 
-  public MyServer(int port, String rootDir) {
+  public MyServer(int port, String rootDir, HashMap<String, Route>routes) {
     this.port = port;
     this.rootDir = rootDir;
+    this.routes = routes;
   }
 
   public void start() {
@@ -58,7 +61,7 @@ public class MyServer {
 
   private void createRequestThread(Socket client) {
     new Thread(() -> {
-      handleConnection(client, rootDir);
+      handleConnection(client, rootDir, routes);
       try {
         client.close();
       } catch (IOException e) {

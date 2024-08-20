@@ -13,13 +13,14 @@ public class Listing implements Route {
   OutputStream outputStream;
   String resource;
 
-  public Listing(HashMap<String, String> connData, OutputStream outputStream) {
+  public Listing() {
+  }
+
+  public void serve(HashMap<String, String> connData, OutputStream outputStream) {
     this.rootDir = connData.get("rootDir");
     this.outputStream = outputStream;
     this.resource = connData.get("resource");
-  }
 
-  public void serve() {
     String[] split = resource.split("/");
     String dir;
     if (split.length > 2) {
@@ -50,7 +51,7 @@ public class Listing implements Route {
     else return String.format("<li><a href=\"%s/%s\">%s</a></li>", dir, i, i);
   }
 
-  private String setFolderLi(String dir, Object i){
+  private String setFolderLi(String dir, Object i) {
     if (dir.equals(rootDir)) return String.format("<li><a href=\"/listing/%s\">%s</a></li>", i, i);
     else return String.format("<li><a href=\"/listing/%s/%s\">%s</a></li>", dir, i, i);
   }

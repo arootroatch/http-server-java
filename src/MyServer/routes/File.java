@@ -15,13 +15,14 @@ public class File implements Route {
   String resource;
   OutputStream outputStream;
 
-  public File(HashMap<String, String> connData, OutputStream outputStream){
+  public File() {
+  }
+
+  public void serve(HashMap<String, String> connData, OutputStream outputStream) {
     this.rootDir = connData.get("rootDir");
     this.resource = connData.get("resource");
     this.outputStream = outputStream;
-  }
 
-  public void serve(){
     try (FileInputStream file = new FileInputStream(rootDir + resource)) {
       String filetype = resource.split("\\.")[1];
       sendFile(file, filetype, outputStream);

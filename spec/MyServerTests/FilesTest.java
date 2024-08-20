@@ -1,6 +1,8 @@
 package MyServerTests;
 
 import MyServer.MyServer;
+import MyServer.Route;
+import MyServer.routes.Listing;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +13,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.HashMap;
 
 import static MyServerTests.URLConnection.parseInputStream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,10 +23,12 @@ public class FilesTest {
   static MyServer server;
   static Socket socket;
   static OutputStream outputStream;
+  static HashMap<String, Route> routes = new HashMap<>();
 
   @BeforeAll
-  static void setup() throws IOException {
-    server = new MyServer(1235, "testroot");
+  static void setup() {
+    routes.put("/listing", new Listing());
+    server = new MyServer(1235, "testroot", routes);
     server.start();
   }
 
@@ -97,7 +102,7 @@ public class FilesTest {
 
   @Test
   void dirIndex() throws IOException {
-    MyServer server1 = new MyServer(1236, "root");
+    MyServer server1 = new MyServer(1236, "root", routes);
     server1.start();
     Socket socket1 = new Socket("127.0.0.1", 1236);
     OutputStream outputStream1 = socket1.getOutputStream();
@@ -169,7 +174,7 @@ public class FilesTest {
 
 
   @AfterAll
-  static void teardown() throws IOException {
+  static void teardown() {
     server.stop();
   }
 }

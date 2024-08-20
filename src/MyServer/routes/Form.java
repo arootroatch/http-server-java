@@ -18,18 +18,17 @@ public class Form implements Route {
   FileInputStream file;
   String addHTML;
 
-  public Form(HashMap<String, String> connData, OutputStream outputStream) {
-    this.resource = connData.get("resource");
-    if (resource.contains("form")){
-      this.rootDir = connData.get("rootDir");
-      this.file = getFile();
-      this.request = connData.get("request");
-      this.html = parseHTML();
-      this.outputStream = outputStream;
-    }
+  public Form() {
   }
 
-  public void serve(){
+  public void serve(HashMap<String, String> connData, OutputStream outputStream) {
+    this.resource = connData.get("resource");
+    this.rootDir = connData.get("rootDir");
+    this.request = connData.get("request");
+    this.outputStream = outputStream;
+    this.file = getFile();
+    this.html = parseHTML();
+
     if (request.contains("POST")) {
       addHTML = postRequestHTML();
       String newHTML = html.split("</html>")[0] + addHTML + "</html>";
@@ -42,7 +41,7 @@ public class Form implements Route {
   }
 
 
-  private FileInputStream getFile(){
+  private FileInputStream getFile() {
     try {
       return new FileInputStream(rootDir + "/forms.html");
     } catch (FileNotFoundException ex) {
@@ -106,30 +105,30 @@ public class Form implements Route {
   }
 
 
-  private String getFileName(){
+  private String getFileName() {
     String[] multiparts = request.split("\r\n\r\n");
     String[] metadata = multiparts[1].split("\r\n");
     return metadata[1].split(";")[2].split("=")[1].split("\"")[1];
   }
 
-  private String getContentType(){
+  private String getContentType() {
     String[] multiparts = request.split("\r\n\r\n");
     String[] metadata = multiparts[1].split("\r\n");
     return metadata[2].split(": ")[1];
   }
 
-  private int getFileSize(){
+  private int getFileSize() {
     String[] multiparts = request.split("\r\n\r\n");
     int metadataBytes = multiparts[1].trim().getBytes().length;
     return getContentLength() - getFooterBytes() - metadataBytes - 8;
   }
 
-  private int getContentLength(){
+  private int getContentLength() {
     return Integer.parseInt(Arrays.stream(request.split("\r\n"))
         .filter(s -> s.contains("Content-Length")).toArray()[0].toString().split(":")[1].trim());
   }
 
-  private int getFooterBytes(){
+  private int getFooterBytes() {
     String[] multiparts = request.split("\r\n\r\n");
     String[] endOfInput = multiparts[2].split("\r\n");
     return endOfInput[endOfInput.length - 1].getBytes().length;

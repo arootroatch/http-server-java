@@ -1,6 +1,8 @@
 package MyServerTests;
 
 import MyServer.MyServer;
+import MyServer.Route;
+import MyServer.routes.Ping;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +15,7 @@ import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 
 import static MyServerTests.URLConnection.connectToURL;
 import static MyServerTests.URLConnection.parseInputStream;
@@ -22,31 +25,26 @@ public class ConcurrencyTest {
   static MyServer server;
   static Socket socket;
   static OutputStream outputStream;
-  Date date;
   String pattern;
   SimpleDateFormat simpleDateFormat;
   String start;
   Calendar calendar;
+  static HashMap<String, Route> routes = new HashMap<>();
 
   @BeforeAll
-  static void setup() {
-    server = new MyServer(1238, "testroot");
+  static void startServer() {
+    routes.put("/ping", new Ping());
+    server = new MyServer(1238, "testroot", routes);
     server.start();
-
   }
 
   @BeforeEach
-  void dateSetup(){
-    date = new Date();
+  void setup() throws IOException {
     pattern = "yyyy-MM-dd HH:mm:ss";
     simpleDateFormat = new SimpleDateFormat(pattern);
-    start = simpleDateFormat.format(date);
+    start = simpleDateFormat.format(new Date());
     calendar = Calendar.getInstance();
-    calendar.setTime(date);
-  }
-
-  @BeforeEach
-  void openSocket() throws IOException {
+    calendar.setTime(new Date());
     socket = new Socket("127.0.0.1", 1238);
     outputStream = socket.getOutputStream();
   }
@@ -84,6 +82,7 @@ public class ConcurrencyTest {
     outputStream.write(("GET /ping/2 HTTP/1.1\r\n\r\n").getBytes());
     outputStream.flush();
     String response = parseInputStream(socket.getInputStream());
+
     assertTrue(response.contains("<h2>Ping</h2>"));
     assertTrue(response.contains("<li>start time: " + start + "</li>"));
     assertTrue(response.contains("<li>end time: " + end + "</li>"));
@@ -100,9 +99,7 @@ public class ConcurrencyTest {
         try {
           HttpURLConnection conn = connectToURL("http://localhost:1238/ping/1");
           String response = parseInputStream(conn.getInputStream());
-//          outputStream.write(("GET /ping/1 HTTP/1.1\r\n\r\n").getBytes());
-//          outputStream.flush();
-//          String response = parseInputStream(socket.getInputStream());
+
           assertTrue(response.contains("<h2>Ping</h2>"));
           assertTrue(response.contains("<li>start time: " + start + "</li>"));
           assertTrue(response.contains("<li>end time: " + end + "</li>"));

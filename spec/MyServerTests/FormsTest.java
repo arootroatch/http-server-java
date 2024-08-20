@@ -1,6 +1,8 @@
 package MyServerTests;
 
 import MyServer.MyServer;
+import MyServer.Route;
+import MyServer.routes.Form;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.HashMap;
 
 import static MyServerTests.URLConnection.parseInputStream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,10 +22,13 @@ public class FormsTest {
   static MyServer server;
   static Socket socket;
   static OutputStream outputStream;
+  static HashMap<String, Route> routes = new HashMap<>();
+
 
   @BeforeAll
   static void setup() {
-    server = new MyServer(1237, "testroot");
+    routes.put("/form", new Form());
+    server = new MyServer(1237, "testroot", routes);
     server.start();
   }
 
@@ -79,26 +85,26 @@ public class FormsTest {
 
   @Test
   void post() throws IOException {
-    FileInputStream file = new FileInputStream("testroot/img/autobot.jpg");
+    try (FileInputStream file = new FileInputStream("testroot/img/autobot.jpg")){
+      outputStream.write(("POST /form HTTP/1.1\r\n").getBytes());
+      outputStream.write(("Content-Length: 58638\r\n\r\n").getBytes());
+      outputStream.write(("------WebKitFormBoundaryz3skuKJCdTzwsajI\r\n").getBytes());
+      outputStream.write(("Content-Disposition: form-data; name=\"file\"; filename=\"autobot.jpg\"\r\n").getBytes());
+      outputStream.write(("Content-Type: image/jpeg\r\n\r\n").getBytes());
+      outputStream.write(file.readAllBytes());
+      outputStream.write(("\r\n").getBytes());
+      outputStream.write(("------WebKitFormBoundaryz3skuKJCdTzwsajI--\r\n\r\n").getBytes());
+      outputStream.flush();
 
-    outputStream.write(("POST /form HTTP/1.1\r\n").getBytes());
-    outputStream.write(("Content-Length: 58638\r\n\r\n").getBytes());
-    outputStream.write(("------WebKitFormBoundaryz3skuKJCdTzwsajI\r\n").getBytes());
-    outputStream.write(("Content-Disposition: form-data; name=\"file\"; filename=\"autobot.jpg\"\r\n").getBytes());
-    outputStream.write(("Content-Type: image/jpeg\r\n\r\n").getBytes());
-    outputStream.write(file.readAllBytes());
-    outputStream.write(("\r\n").getBytes());
-    outputStream.write(("------WebKitFormBoundaryz3skuKJCdTzwsajI--\r\n\r\n").getBytes());
-    outputStream.flush();
+      String response = parseInputStream(socket.getInputStream());
+      int i = response.length();
 
-    String response = parseInputStream(socket.getInputStream());
-    int i = response.length();
-
-    assertTrue(response.contains("<h2>POST Form</h2>"));
-    assertTrue(response.contains("<li>file name: autobot.jpg</li>"));
-    assertTrue(response.contains("<li>content type: image/jpeg</li>"));
-    assertTrue(response.contains("<li>file size: 58453</li>"));
-    assertEquals("</html>\r\n", response.substring(i - 9));
+      assertTrue(response.contains("<h2>POST Form</h2>"));
+      assertTrue(response.contains("<li>file name: autobot.jpg</li>"));
+      assertTrue(response.contains("<li>content type: image/jpeg</li>"));
+      assertTrue(response.contains("<li>file size: 58453</li>"));
+      assertEquals("</html>\r\n", response.substring(i - 9));
+    }
   }
 
   @AfterAll

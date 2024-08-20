@@ -1,8 +1,16 @@
 package MyServer;
 
+import MyServer.routes.Form;
+import MyServer.routes.Hello;
+import MyServer.routes.Listing;
+import MyServer.routes.Ping;
+
+import java.util.HashMap;
 import java.util.Objects;
 
 public class Main {
+  static HashMap<String, Route> routes = new HashMap<>();
+
   public static void main(String[] args) {
     int port = setPort(args);
     String rootDir = setRootDir(args);
@@ -17,8 +25,21 @@ public class Main {
       return;
     }
 
-    MyServer server = new MyServer(port, rootDir);
+    setRoute("/form", new Form());
+    setRoute("/hello", new Hello());
+    setRoute("/listing", new Listing());
+    setRoute("/ping", new Ping());
+
+    MyServer server = new MyServer(port, rootDir, routes);
     server.start();
+  }
+
+  public static void setRoute(String route, Route classname){
+      routes.put(route, classname);
+  }
+
+  public static void removeRoute(String route){
+    routes.remove(route);
   }
 
   private static Integer setPort(String[] args) {

@@ -16,13 +16,14 @@ public class Folder implements Route {
   String resource;
   OutputStream outputStream;
 
-  public Folder(HashMap<String, String> connData, OutputStream outputStream){
+  public Folder() {
+  }
+
+  public void serve(HashMap<String, String> connData, OutputStream outputStream) {
     this.rootDir = connData.get("rootDir");
     this.resource = connData.get("resource");
     this.outputStream = outputStream;
-  }
 
-  public void serve(){
     Object[] contents = getContentsOfDir(rootDir + resource);
     if (Arrays.asList(contents).contains("index.html")) {
       try (FileInputStream file = new FileInputStream(rootDir + resource + "/index.html")) {

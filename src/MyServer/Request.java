@@ -7,12 +7,10 @@ import java.io.*;
 import java.net.Socket;
 import java.util.HashMap;
 
-import static MyServer.routes.RouteMap.getRoutes;
-
 public final class Request {
   private Request(){}
 
-  public static void handleConnection(Socket client, String rootDir) {
+  public static void handleConnection(Socket client, String rootDir, HashMap<String, Route>routes) {
     InputStream inputStream;
     OutputStream outputStream;
     try {
@@ -22,22 +20,22 @@ public final class Request {
       throw new RuntimeException(e);
     }
     String request = parseRequest(inputStream);
-    handleRequest(request, outputStream, rootDir);
+    handleRequest(request, outputStream, rootDir, routes);
   }
 
-  private static void handleRequest(String request, OutputStream outputStream, String rootDir) {
+  private static void handleRequest(String request, OutputStream outputStream,
+                                    String rootDir, HashMap<String, Route>routes) {
     String resource = parseResource(request);
     String resourceStart = resource.split("[?/]").length > 0 ? resource.split("[?/]")[1] : "";
     String route = "/" + resourceStart;
     HashMap<String, String> connData = bundleConnData(request, resource, rootDir);
-    HashMap<String, Route> routes = getRoutes(connData, outputStream);
 
     if (routes.containsKey(route)) {
-      routes.get(route).serve();
+      routes.get(route).serve(connData, outputStream);
     } else if (!resource.contains(".")) {
-      new Folder(connData, outputStream).serve();
+      new Folder().serve(connData, outputStream);
     } else {
-      new File(connData, outputStream).serve();
+      new File().serve(connData, outputStream);
     }
   }
 
