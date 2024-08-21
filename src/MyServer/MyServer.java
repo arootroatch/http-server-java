@@ -6,7 +6,6 @@ import java.net.Socket;
 import java.util.HashMap;
 
 import static MyServer.Print.printConfig;
-import static MyServer.Request.handleConnection;
 
 public class MyServer {
   ServerSocket serverSocket;
@@ -61,7 +60,7 @@ public class MyServer {
 
   private void createRequestThread(Socket client) {
     new Thread(() -> {
-      handleConnection(client, rootDir, routes);
+      new Request().handleConnection(client, rootDir, routes);
       try {
         client.close();
       } catch (IOException e) {
