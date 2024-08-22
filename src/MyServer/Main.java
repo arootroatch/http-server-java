@@ -1,9 +1,6 @@
 package MyServer;
 
-import MyServer.routes.Form;
-import MyServer.routes.Hello;
-import MyServer.routes.Listing;
-import MyServer.routes.Ping;
+import MyServer.routes.*;
 
 import java.util.HashMap;
 import java.util.Objects;
@@ -26,6 +23,7 @@ public class Main {
     }
 
     setRoute("/form", new Form());
+    setRoute("/guess", new Guess());
     setRoute("/hello", new Hello());
     setRoute("/listing", new Listing());
     setRoute("/ping", new Ping());

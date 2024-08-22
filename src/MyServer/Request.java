@@ -26,7 +26,7 @@ public class Request {
   private void handleRequest(String request, OutputStream outputStream,
                                     String rootDir, HashMap<String, Route>routes) {
     String resource = parseResource(request);
-    String resourceStart = resource.split("[?/]").length > 0 ? resource.split("[?/]")[1] : "";
+    String resourceStart = resource.split("[?/]").length > 1 ? resource.split("[?/]")[1] : "";
     String route = "/" + resourceStart;
     HashMap<String, String> connData = bundleConnData(request, resource, rootDir);
 
@@ -91,8 +91,10 @@ public class Request {
       try {
         if (line.contains("Content-Length")) {
           contentLength += Integer.parseInt(line.split(": ")[1]);
+          line = br.readLine();
+        } else if (line.isBlank()){
           break;
-        } else line = br.readLine();
+        }else line = br.readLine();
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
