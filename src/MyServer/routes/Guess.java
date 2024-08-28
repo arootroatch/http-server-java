@@ -25,7 +25,7 @@ public class Guess implements Route {
     resource = connData.get("resource");
     request = connData.get("request");
     this.outputStream = outputStream;
-    needsNewNumber = !request.contains("Cookie: number=") || request.contains("GET");
+    needsNewNumber = !request.contains("number=") || request.contains("GET");
     guessReceived = request.contains("guess=") ?
         Integer.parseInt(request.split("\r\n\r\n")[1].split("=")[1]) : null;
     numberToGuess = setNumberToGuess();
@@ -92,9 +92,9 @@ public class Guess implements Route {
 
   private int setNumberToGuess() {
     if (request.contains("GET")) return (int) Math.floor(Math.random() * 100) + 1;
-    if (request.contains("Cookie: number")) {
+    if (request.contains("number=")) {
       String cookieHeader = Arrays.stream(request.split("\r\n"))
-          .filter(header -> header.contains("Cookie: number")).toArray()[0].toString();
+          .filter(header -> header.contains("Cookie: ")).toArray()[0].toString();
 
       String numberCookie = Arrays.stream(cookieHeader.split(" "))
           .filter(cookie -> cookie.contains("number")).toArray()[0].toString();
