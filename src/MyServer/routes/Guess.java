@@ -5,7 +5,7 @@ import MyServer.Route;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Map;
 
 public class Guess implements Route {
   String resource;
@@ -21,7 +21,7 @@ public class Guess implements Route {
   }
 
   @Override
-  public void serve(HashMap<String, String> connData, OutputStream outputStream) {
+  public void serve(Map<String, String> connData, OutputStream outputStream) {
     resource = connData.get("resource");
     request = connData.get("request");
     this.outputStream = outputStream;
@@ -64,7 +64,7 @@ public class Guess implements Route {
       byte[] fileBytes = html.getBytes();
       int byteCount = fileBytes.length;
       outputStream.write(("HTTP/1.1 200 OK\r\n").getBytes());
-      outputStream.write(("text/html\r\n").getBytes());
+      outputStream.write(("Content-Type: text/html\r\n").getBytes());
       if (needsNewNumber) outputStream.write(("Set-Cookie: number=" + numberToGuess + "\r\n").getBytes());
       outputStream.write(("Set-Cookie: tries-left=" + triesLeft + "\r\n").getBytes());
       outputStream.write(("Content-Length: " + byteCount + "\r\n").getBytes());

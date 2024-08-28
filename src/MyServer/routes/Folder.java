@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 
 import static MyServer.routes.DirectoryContents.getContentsOfDir;
 import static MyServer.routes.Utils.*;
@@ -19,7 +20,7 @@ public class Folder implements Route {
   public Folder() {
   }
 
-  public void serve(HashMap<String, String> connData, OutputStream outputStream) {
+  public void serve(Map<String, String> connData, OutputStream outputStream) {
     this.rootDir = connData.get("rootDir");
     this.resource = connData.get("resource");
     this.outputStream = outputStream;

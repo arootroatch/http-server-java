@@ -4,6 +4,7 @@ import MyServer.Route;
 
 import java.io.OutputStream;
 import java.util.HashMap;
+import java.util.Map;
 
 import static MyServer.routes.DirectoryContents.getContentsOfDir;
 import static MyServer.routes.Utils.sendHtmlString;
@@ -16,7 +17,7 @@ public class Listing implements Route {
   public Listing() {
   }
 
-  public void serve(HashMap<String, String> connData, OutputStream outputStream) {
+  public void serve(Map<String, String> connData, OutputStream outputStream) {
     this.rootDir = connData.get("rootDir");
     this.outputStream = outputStream;
     this.resource = connData.get("resource");

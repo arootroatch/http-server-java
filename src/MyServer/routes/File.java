@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;
+import java.util.Map;
 
 import static MyServer.routes.Utils.send404;
 import static MyServer.routes.Utils.sendFile;
@@ -18,7 +19,7 @@ public class File implements Route {
   public File() {
   }
 
-  public void serve(HashMap<String, String> connData, OutputStream outputStream) {
+  public void serve(Map<String, String> connData, OutputStream outputStream) {
     this.rootDir = connData.get("rootDir");
     this.resource = connData.get("resource");
     this.outputStream = outputStream;

@@ -5,7 +5,7 @@ import MyServer.Route;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.Map;
 
 import static MyServer.routes.Utils.sendHtmlString;
 
@@ -20,7 +20,7 @@ public class Ping implements Route {
   public Ping() {
   }
 
-  public void serve(HashMap<String, String> connData, OutputStream outputStream) {
+  public void serve(Map<String, String> connData, OutputStream outputStream) {
     this.start = simpleDateFormat.format(new Date());
 
     String resource = connData.get("resource");

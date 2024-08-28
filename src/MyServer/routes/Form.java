@@ -4,7 +4,7 @@ import MyServer.Route;
 
 import java.io.*;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Map;
 
 import static MyServer.routes.Utils.send404;
 import static MyServer.routes.Utils.sendHtmlString;
@@ -21,7 +21,7 @@ public class Form implements Route {
   public Form() {
   }
 
-  public void serve(HashMap<String, String> connData, OutputStream outputStream) {
+  public void serve(Map<String, String> connData, OutputStream outputStream) {
     this.resource = connData.get("resource");
     this.rootDir = connData.get("rootDir");
     this.request = connData.get("request");

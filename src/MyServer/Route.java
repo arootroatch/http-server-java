@@ -1,8 +1,8 @@
 package MyServer;
 
 import java.io.OutputStream;
-import java.util.HashMap;
+import java.util.Map;
 
 public interface Route {
-  void serve(HashMap<String, String> connData, OutputStream outputStream);
+  void serve(Map<String, String> connData, OutputStream outputStream);
 }
