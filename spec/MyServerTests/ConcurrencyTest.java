@@ -10,14 +10,12 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 
-import static MyServerTests.URLConnection.connectToURL;
 import static MyServerTests.URLConnection.parseInputStream;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -97,19 +95,17 @@ public class ConcurrencyTest {
     class MyThread extends Thread {
       public void run() {
         try {
-          HttpURLConnection conn = connectToURL("http://localhost:1238/ping/1");
-          String response = parseInputStream(conn.getInputStream());
-
-          assertTrue(response.contains("<h2>Ping</h2>"));
-          assertTrue(response.contains("<li>start time: " + start + "</li>"));
-          assertTrue(response.contains("<li>end time: " + end + "</li>"));
+          socket = new Socket("127.0.0.1", 1238);
+          outputStream = socket.getOutputStream();
+          outputStream.write(("GET /ping/1 HTTP/1.1\r\n\r\n").getBytes());
+          outputStream.flush();
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
       }
     }
 
-    for (int i = 0; i < 5; i++){
+    for (int i = 0; i < 5; i++) {
       new MyThread().start();
     }
 

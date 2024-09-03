@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import static MyServerTests.URLConnection.parseInputStream;
@@ -86,12 +87,13 @@ public class FormsTest {
   @Test
   void post() throws IOException {
     FileInputStream file = new FileInputStream("testroot/img/autobot.jpg");
+    byte[] fileBytes = file.readAllBytes();
     outputStream.write(("POST /form HTTP/1.1\r\n").getBytes());
     outputStream.write(("Content-Length: 58638\r\n\r\n").getBytes());
     outputStream.write(("------WebKitFormBoundaryz3skuKJCdTzwsajI\r\n").getBytes());
     outputStream.write(("Content-Disposition: form-data; name=\"file\"; filename=\"autobot.jpg\"\r\n").getBytes());
     outputStream.write(("Content-Type: image/jpeg\r\n\r\n").getBytes());
-    outputStream.write(file.readAllBytes());
+    outputStream.write(fileBytes);
     outputStream.write(("\r\n").getBytes());
     outputStream.write(("------WebKitFormBoundaryz3skuKJCdTzwsajI--\r\n\r\n").getBytes());
     outputStream.flush();

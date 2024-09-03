@@ -1,16 +1,17 @@
 package MyServer;
 
-import MyServer.routes.*;
 import MyServer.routes.File;
+import MyServer.routes.Folder;
 
 import java.io.*;
 import java.net.Socket;
 import java.util.HashMap;
 
 public class Request {
-  public Request(){}
+  public Request() {
+  }
 
-  public void handleConnection(Socket client, String rootDir, HashMap<String, Route>routes) {
+  public void handleConnection(Socket client, String rootDir, HashMap<String, Route> routes) {
     InputStream inputStream;
     OutputStream outputStream;
     try {
@@ -24,7 +25,7 @@ public class Request {
   }
 
   private void handleRequest(String request, OutputStream outputStream,
-                                    String rootDir, HashMap<String, Route>routes) {
+                             String rootDir, HashMap<String, Route> routes) {
     String resource = parseResource(request);
     String resourceStart = resource.split("[?/]").length > 1 ? resource.split("[?/]")[1] : "";
     String route = "/" + resourceStart;
@@ -92,9 +93,9 @@ public class Request {
         if (line.contains("Content-Length")) {
           contentLength += Integer.parseInt(line.split(": ")[1]);
           line = br.readLine();
-        } else if (line.isBlank()){
+        } else if (line.isBlank()) {
           break;
-        }else line = br.readLine();
+        } else line = br.readLine();
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -103,8 +104,10 @@ public class Request {
     if (contentLength > 0) {
       buffer = new char[contentLength];
       try {
-        numRead = br.read(buffer);
-        request.append(buffer, 0, numRead);
+        while (br.ready()) {
+          numRead = br.read(buffer);
+          request.append(buffer, 0, numRead);
+        }
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
