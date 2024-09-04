@@ -88,6 +88,8 @@ public class FormsTest {
   void post() throws IOException {
     FileInputStream file = new FileInputStream("testroot/img/autobot.jpg");
     byte[] fileBytes = file.readAllBytes();
+    file.close();
+
     outputStream.write(("POST /form HTTP/1.1\r\n").getBytes());
     outputStream.write(("Content-Length: 58638\r\n\r\n").getBytes());
     outputStream.write(("------WebKitFormBoundaryz3skuKJCdTzwsajI\r\n").getBytes());
@@ -106,7 +108,6 @@ public class FormsTest {
     assertTrue(response.contains("<li>content type: image/jpeg</li>"));
     assertTrue(response.contains("<li>file size: 58453</li>"));
     assertEquals("</html>\r\n", response.substring(i - 9));
-    file.close();
   }
 
   @AfterAll
