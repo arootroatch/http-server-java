@@ -83,10 +83,28 @@ public class Request {
   }
 
   private void parsePostRequest(String line, StringBuilder request, BufferedReader br) {
-    char[] buffer;
     int contentLength = 0;
-    int numRead;
+    contentLength = getContentLength(line, request, br, contentLength);
+    parsePostBody(request, br, contentLength);
+  }
 
+  private static void parsePostBody(StringBuilder request, BufferedReader br, int contentLength) {
+    char[] buffer;
+    int numRead;
+    if (contentLength > 0) {
+      buffer = new char[contentLength];
+      try {
+        while (br.ready()) {
+          numRead = br.read(buffer);
+          request.append(buffer, 0, numRead);
+        }
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
+  private static int getContentLength(String line, StringBuilder request, BufferedReader br, int contentLength) {
     while (line != null) {
       request.append(line).append("\r\n");
       try {
@@ -100,19 +118,10 @@ public class Request {
         throw new RuntimeException(e);
       }
     }
-
-    if (contentLength > 0) {
-      buffer = new char[contentLength];
-      try {
-        while (br.ready()) {
-          numRead = br.read(buffer);
-          request.append(buffer, 0, numRead);
-        }
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
+    return contentLength;
   }
+
+  private void parsePostHeaders(){}
 
   private String parseResource(String request) {
     String firstLine = request.split("\r\n")[0];
