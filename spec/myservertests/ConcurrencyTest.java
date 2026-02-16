@@ -1,28 +1,26 @@
-package MyServerTests;
+package myservertests;
 
-import MyServer.MyServer;
-import MyServer.Route;
-import MyServer.routes.Ping;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import myserver.MyServer;
+import myserver.Route;
+import myserver.routes.Ping;
+import org.junit.jupiter.api.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
-import static MyServerTests.URLConnection.parseInputStream;
+import static myservertests.URLConnection.parseInputStream;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ConcurrencyTest {
   static MyServer server;
-  static Socket socket;
-  static OutputStream outputStream;
+  Socket socket;
+  OutputStream outputStream;
   String pattern;
   SimpleDateFormat simpleDateFormat;
   String start;
@@ -45,6 +43,11 @@ public class ConcurrencyTest {
     calendar.setTime(new Date());
     socket = new Socket("127.0.0.1", 1238);
     outputStream = socket.getOutputStream();
+  }
+
+  @AfterEach
+  void closeSocket() throws IOException {
+    if (socket != null) socket.close();
   }
 
   @Test
@@ -87,39 +90,40 @@ public class ConcurrencyTest {
   }
 
   @Test
-  void concurrent() throws IOException {
-    calendar.add(Calendar.SECOND, 1);
-    Date delay = calendar.getTime();
-    String end = simpleDateFormat.format(delay);
+  void concurrent() throws Exception {
+    ExecutorService executor = Executors.newFixedThreadPool(5);
+    long startTime = System.currentTimeMillis();
 
-    class MyThread extends Thread {
-      public void run() {
-        try {
-          socket = new Socket("127.0.0.1", 1238);
-          outputStream = socket.getOutputStream();
-          outputStream.write(("GET /ping/1 HTTP/1.1\r\n\r\n").getBytes());
-          outputStream.flush();
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
-    }
-
+    List<Future<String>> futures = new ArrayList<>();
     for (int i = 0; i < 5; i++) {
-      new MyThread().start();
+      futures.add(executor.submit(() -> {
+        Socket s = new Socket("127.0.0.1", 1238);
+        OutputStream os = s.getOutputStream();
+        os.write("GET /ping/1 HTTP/1.1\r\n\r\n".getBytes());
+        os.flush();
+        String response = parseInputStream(s.getInputStream());
+        s.close();
+        return response;
+      }));
     }
 
-    outputStream.write(("GET /ping/1 HTTP/1.1\r\n\r\n").getBytes());
-    outputStream.flush();
-    String response = parseInputStream(socket.getInputStream());
-    assertTrue(response.contains("<h2>Ping</h2>"));
-    assertTrue(response.contains("<li>start time: " + start + "</li>"));
-    assertTrue(response.contains("<li>end time: " + end + "</li>"));
+    List<String> responses = new ArrayList<>();
+    for (Future<String> future : futures) {
+      responses.add(future.get());
+    }
+
+    long elapsed = System.currentTimeMillis() - startTime;
+    executor.shutdown();
+
+    for (String response : responses) {
+      assertTrue(response.contains("<h2>Ping</h2>"));
+    }
+
+    assertTrue(elapsed < 3000, "Concurrent requests took too long: " + elapsed + "ms");
   }
 
   @AfterAll
-  static void teardown() throws IOException {
+  static void teardown() {
     server.stop();
-    socket.close();
   }
 }

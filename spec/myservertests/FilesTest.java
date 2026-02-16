@@ -1,12 +1,9 @@
-package MyServerTests;
+package myservertests;
 
-import MyServer.MyServer;
-import MyServer.Route;
-import MyServer.routes.Listing;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import myserver.MyServer;
+import myserver.Route;
+import myserver.routes.Listing;
+import org.junit.jupiter.api.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,14 +12,14 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.HashMap;
 
-import static MyServerTests.URLConnection.parseInputStream;
+import static myservertests.URLConnection.parseInputStream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FilesTest {
   static MyServer server;
-  static Socket socket;
-  static OutputStream outputStream;
+  Socket socket;
+  OutputStream outputStream;
   static HashMap<String, Route> routes = new HashMap<>();
 
   @BeforeAll
@@ -36,6 +33,11 @@ public class FilesTest {
   void openSocket() throws IOException {
     socket = new Socket("127.0.0.1", 1235);
     outputStream = socket.getOutputStream();
+  }
+
+  @AfterEach
+  void closeSocket() throws IOException {
+    if (socket != null) socket.close();
   }
 
   @Test
@@ -171,7 +173,6 @@ public class FilesTest {
     assertTrue(response.contains(image));
     assertTrue(response.contains("Content-Type: application/pdf"));
   }
-
 
   @AfterAll
   static void teardown() {

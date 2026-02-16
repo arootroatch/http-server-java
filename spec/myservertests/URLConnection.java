@@ -1,4 +1,4 @@
-package MyServerTests;
+package myservertests;
 
 import java.io.BufferedReader;
 import java.io.IOException;

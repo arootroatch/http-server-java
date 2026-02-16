@@ -1,30 +1,25 @@
-package MyServerTests;
+package myservertests;
 
-import MyServer.MyServer;
-import MyServer.Route;
-import MyServer.routes.Form;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import myserver.MyServer;
+import myserver.Route;
+import myserver.routes.Form;
+import org.junit.jupiter.api.*;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.Arrays;
 import java.util.HashMap;
 
-import static MyServerTests.URLConnection.parseInputStream;
+import static myservertests.URLConnection.parseInputStream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FormsTest {
   static MyServer server;
-  static Socket socket;
-  static OutputStream outputStream;
+  Socket socket;
+  OutputStream outputStream;
   static HashMap<String, Route> routes = new HashMap<>();
-
 
   @BeforeAll
   static void setup() {
@@ -37,6 +32,11 @@ public class FormsTest {
   void openSocket() throws IOException {
     socket = new Socket("127.0.0.1", 1237);
     outputStream = socket.getOutputStream();
+  }
+
+  @AfterEach
+  void closeSocket() throws IOException {
+    if (socket != null) socket.close();
   }
 
   @Test

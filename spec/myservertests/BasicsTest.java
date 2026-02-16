@@ -1,11 +1,8 @@
-package MyServerTests;
+package myservertests;
 
-import MyServer.MyServer;
-import MyServer.Route;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import myserver.MyServer;
+import myserver.Route;
+import org.junit.jupiter.api.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,28 +10,30 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.HashMap;
 
-import static MyServerTests.URLConnection.parseInputStream;
+import static myservertests.URLConnection.parseInputStream;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class BasicsTest {
   static MyServer server;
-  static Socket socket;
-  static OutputStream outputStream;
+  Socket socket;
+  OutputStream outputStream;
   static HashMap<String, Route> routes = new HashMap<>();
 
   @BeforeAll
-  static void setup() throws IOException {
+  static void setup() {
     server = new MyServer(1234, "testroot", routes);
     server.start();
-
-    socket = new Socket("127.0.0.1", 1234);
-    outputStream = socket.getOutputStream();
   }
 
   @BeforeEach
   void openSocket() throws IOException {
     socket = new Socket("127.0.0.1", 1234);
     outputStream = socket.getOutputStream();
+  }
+
+  @AfterEach
+  void closeSocket() throws IOException {
+    if (socket != null) socket.close();
   }
 
   @Test
@@ -87,8 +86,7 @@ public class BasicsTest {
   }
 
   @AfterAll
-  static void teardown() throws IOException {
+  static void teardown() {
     server.stop();
-    socket.close();
   }
 }
