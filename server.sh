@@ -1,3 +1,5 @@
 #!/bin/sh
 
-java -cp /Users/AlexRoot-Roatch/current-projects/http-server-java/out MyServer.Main --args "$@"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+java -cp "$SCRIPT_DIR/out" myserver.Main "$@"

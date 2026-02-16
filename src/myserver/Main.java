@@ -1,12 +1,15 @@
-package MyServer;
+package myserver;
 
-import MyServer.routes.*;
+import myserver.routes.*;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 public class Main {
-  private static final HashMap<String, Route> routes = new HashMap<>();
+  private static final Map<String, Route> routes = new HashMap<>();
 
   public static void main(String[] args) {
     int port = setPort(args);
@@ -32,25 +35,28 @@ public class Main {
     server.start();
   }
 
-  public static void setRoute(String route, Route classname){
-      routes.put(route, classname);
+  public static void setRoute(String route, Route classname) {
+    routes.put(route, classname);
   }
 
-  public static void removeRoute(String route){
+  public static void removeRoute(String route) {
     routes.remove(route);
   }
 
   private static Integer setPort(String[] args) {
     int indexOfArg = contains(args, "-p");
-    if (indexOfArg > -1) return Integer.parseInt(args[indexOfArg + 1]) ;
+    if (indexOfArg > -1) return Integer.parseInt(args[indexOfArg + 1]);
     else return 80;
   }
 
   private static String setRootDir(String[] args) {
-    String path = "/Users/AlexRoot-Roatch/current-projects/http-server-java/";
     int indexOfArg = contains(args, "-r");
-    if (indexOfArg > -1) return path + args[indexOfArg + 1];
-    else return path + "testroot";
+    String dir = indexOfArg > -1 ? args[indexOfArg + 1] : "testroot";
+    try {
+      return new File(dir).getCanonicalPath();
+    } catch (IOException e) {
+      return dir;
+    }
   }
 
   private static int contains(String[] args, String s) {
@@ -61,5 +67,4 @@ public class Main {
     }
     return -1;
   }
-
 }

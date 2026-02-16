@@ -1,5 +1,5 @@
 {
- :cmd "/Users/AlexRoot-Roatch/current-projects/http-server-java/server.sh"
+ :cmd "./server.sh"
  :name "My MacBook Pro"
  :startup-millis 3000
  :debug? false

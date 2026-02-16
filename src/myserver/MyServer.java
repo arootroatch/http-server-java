@@ -1,11 +1,13 @@
-package MyServer;
+package myserver;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashMap;
+import java.util.Map;
 
-import static MyServer.Print.printConfig;
+import static myserver.Print.printConfig;
 
 public class MyServer {
   ServerSocket serverSocket;
@@ -13,9 +15,9 @@ public class MyServer {
   private Thread thread;
   private final int port;
   private final String rootDir;
-  private final HashMap<String, Route> routes;
+  private final Map<String, Route> routes;
 
-  public MyServer(int port, String rootDir, HashMap<String, Route>routes) {
+  public MyServer(int port, String rootDir, Map<String, Route> routes) {
     this.port = port;
     this.rootDir = rootDir;
     this.routes = routes;
@@ -60,11 +62,19 @@ public class MyServer {
 
   private void createRequestThread(Socket client) {
     new Thread(() -> {
-      new Request().handleConnection(client, rootDir, routes);
       try {
-        client.close();
+        InputStream inputStream = client.getInputStream();
+        OutputStream outputStream = client.getOutputStream();
+        HttpRequest request = HttpRequestParser.parse(inputStream);
+        RequestDispatcher.dispatch(request, rootDir, routes, outputStream);
       } catch (IOException e) {
         throw new RuntimeException(e);
+      } finally {
+        try {
+          client.close();
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
       }
     }).start();
   }
@@ -72,7 +82,7 @@ public class MyServer {
   private Socket openSocketConnection() {
     Socket client = null;
     try {
-     client = this.serverSocket.accept();
+      client = this.serverSocket.accept();
     } catch (IOException e) {
       if (this.running) {
         System.err.println("Socket error");
@@ -82,4 +92,3 @@ public class MyServer {
     return client;
   }
 }
-

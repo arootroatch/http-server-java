@@ -1,3 +1,7 @@
 #!/bin/sh
 
-javac --release 21 -d /Users/AlexRoot-Roatch/current-projects/http-server-java/out /Users/AlexRoot-Roatch/current-projects/http-server-java/src/MyServer/*.java /Users/AlexRoot-Roatch/current-projects/http-server-java/src/MyServer/Routes/*.java
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+javac --release 21 -d "$SCRIPT_DIR/out" \
+  "$SCRIPT_DIR/src/myserver/"*.java \
+  "$SCRIPT_DIR/src/myserver/routes/"*.java

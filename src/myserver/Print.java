@@ -1,4 +1,4 @@
-package MyServer;
+package myserver;
 
 public class Print {
   public static void printHelp() {
