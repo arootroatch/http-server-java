@@ -5,6 +5,7 @@ import myserver.HttpRequest;
 import myserver.Route;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 import static myserver.routes.Utils.send404;
 import static myserver.routes.Utils.sendHtmlString;
@@ -69,10 +70,11 @@ public class Form implements Route {
   }
 
   private String postRequestHTML(HttpRequest request) {
-    String body = request.body();
-    String fileName = getFileName(body);
-    String contentType = getContentType(body);
-    int fileSize = getFileSize(request);
+    byte[] body = request.body();
+    String metadata = extractMetadata(body);
+    String fileName = getFileName(metadata);
+    String contentType = getContentType(metadata);
+    int fileSize = getFileSize(body);
 
     return "<ul>" +
         "<li>file name: " + fileName + "</li>" +
@@ -81,26 +83,43 @@ public class Form implements Route {
         "</ul>";
   }
 
-  private String getFileName(String body) {
-    String[] bodyParts = body.split("\r\n\r\n", 2);
-    String[] metadata = bodyParts[0].split("\r\n");
-    return metadata[1].split(";")[2].split("=")[1].split("\"")[1];
+  private String extractMetadata(byte[] body) {
+    int pos = findDoubleCRLF(body);
+    if (pos == -1) return "";
+    return new String(body, 0, pos, StandardCharsets.US_ASCII);
   }
 
-  private String getContentType(String body) {
-    String[] bodyParts = body.split("\r\n\r\n", 2);
-    String[] metadata = bodyParts[0].split("\r\n");
-    return metadata[2].split(": ")[1];
+  private String getFileName(String metadata) {
+    String[] lines = metadata.split("\r\n");
+    return lines[1].split(";")[2].split("=")[1].split("\"")[1];
   }
 
-  private int getFileSize(HttpRequest request) {
-    String body = request.body();
-    String[] bodyParts = body.split("\r\n\r\n", 2);
-    int metadataBytes = bodyParts[0].trim().getBytes().length;
-    int contentLength = Integer.parseInt(request.header("Content-Length").trim());
-    String fileAndFooter = bodyParts.length > 1 ? bodyParts[1] : "";
-    String[] lines = fileAndFooter.split("\r\n");
-    int footerBytes = lines[lines.length - 1].getBytes().length;
-    return contentLength - footerBytes - metadataBytes - 8;
+  private String getContentType(String metadata) {
+    String[] lines = metadata.split("\r\n");
+    return lines[2].split(": ")[1];
+  }
+
+  private int getFileSize(byte[] body) {
+    int headerEnd = findDoubleCRLF(body);
+    if (headerEnd == -1) return 0;
+    int fileStart = headerEnd + 4;
+
+    int fileEnd = body.length;
+    for (int i = body.length - 4; i >= fileStart; i--) {
+      if (body[i] == '\r' && body[i + 1] == '\n' && body[i + 2] == '-' && body[i + 3] == '-') {
+        fileEnd = i;
+        break;
+      }
+    }
+    return fileEnd - fileStart;
+  }
+
+  private int findDoubleCRLF(byte[] data) {
+    for (int i = 0; i < data.length - 3; i++) {
+      if (data[i] == '\r' && data[i + 1] == '\n' && data[i + 2] == '\r' && data[i + 3] == '\n') {
+        return i;
+      }
+    }
+    return -1;
   }
 }

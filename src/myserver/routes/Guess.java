@@ -22,8 +22,8 @@ public class Guess implements Route {
         || GameSession.getNumber(sessionId) == null;
 
     Integer guessReceived = null;
-    if (method.equals("POST") && !request.body().isEmpty()) {
-      String body = request.body().trim();
+    if (method.equals("POST") && request.body().length > 0) {
+      String body = request.bodyAsString().trim();
       String[] parts = body.split("=", 2);
       if (parts.length == 2 && parts[0].equals("guess")) {
         guessReceived = Integer.parseInt(parts[1].trim());

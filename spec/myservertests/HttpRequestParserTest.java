@@ -20,7 +20,7 @@ public class HttpRequestParserTest {
     assertEquals("/hello", request.path());
     assertEquals("", request.queryString());
     assertEquals("localhost", request.header("Host"));
-    assertEquals("", request.body());
+    assertEquals(0, request.body().length);
   }
 
   @Test
@@ -40,7 +40,7 @@ public class HttpRequestParserTest {
     HttpRequest request = HttpRequestParser.parse(is);
     assertEquals("POST", request.method());
     assertEquals("/form", request.path());
-    assertEquals("hello=1", request.body());
+    assertEquals("hello=1", request.bodyAsString());
   }
 
   @Test

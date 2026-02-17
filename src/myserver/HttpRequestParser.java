@@ -1,25 +1,21 @@
 package myserver;
 
-import java.io.BufferedReader;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
 public class HttpRequestParser {
 
   public static HttpRequest parse(InputStream inputStream) {
-    BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-    String requestLine;
-    try {
-      requestLine = br.readLine();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    BufferedInputStream bis = new BufferedInputStream(inputStream);
 
+    String requestLine = readLine(bis);
     if (requestLine == null || requestLine.isBlank()) {
-      return new HttpRequest("", "", "", Map.of(), "");
+      return new HttpRequest("", "", "", Map.of(), new byte[0]);
     }
 
     String[] parts = requestLine.split(" ");
@@ -38,40 +34,54 @@ public class HttpRequestParser {
     }
 
     Map<String, String> headers = new HashMap<>();
-    try {
-      String line;
-      while ((line = br.readLine()) != null && !line.isBlank()) {
-        int colonIdx = line.indexOf(':');
-        if (colonIdx > 0) {
-          String name = line.substring(0, colonIdx).trim();
-          String value = line.substring(colonIdx + 1).trim();
-          headers.put(name, value);
-        }
+    String line;
+    while ((line = readLine(bis)) != null && !line.isEmpty()) {
+      int colonIdx = line.indexOf(':');
+      if (colonIdx > 0) {
+        String name = line.substring(0, colonIdx).trim();
+        String value = line.substring(colonIdx + 1).trim();
+        headers.put(name, value);
       }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
     }
 
-    String body = "";
+    byte[] body = new byte[0];
     String contentLengthStr = headers.get("Content-Length");
     if (contentLengthStr != null) {
       int contentLength = Integer.parseInt(contentLengthStr.trim());
       if (contentLength > 0) {
-        char[] buffer = new char[contentLength];
+        body = new byte[contentLength];
         int totalRead = 0;
         try {
           while (totalRead < contentLength) {
-            int read = br.read(buffer, totalRead, contentLength - totalRead);
+            int read = bis.read(body, totalRead, contentLength - totalRead);
             if (read == -1) break;
             totalRead += read;
           }
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
-        body = new String(buffer, 0, totalRead);
       }
     }
 
     return new HttpRequest(method, path, queryString, headers, body);
+  }
+
+  private static String readLine(InputStream in) {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    int b = -1;
+    try {
+      while ((b = in.read()) != -1) {
+        if (b == '\r') {
+          in.read();
+          break;
+        }
+        if (b == '\n') break;
+        baos.write(b);
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    if (b == -1 && baos.size() == 0) return null;
+    return baos.toString(StandardCharsets.US_ASCII);
   }
 }
