@@ -5,6 +5,7 @@ import myserver.routes.Folder;
 import org.junit.jupiter.api.*;
 
 import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,6 +15,8 @@ public class BasicsTest {
 
   @Test
   void startAndStop() {
+    PrintStream originalOut = System.out;
+    System.setOut(new PrintStream(new ByteArrayOutputStream()));
     MyServer server = new MyServer(0, "testroot", new HashMap<>());
     server.start();
     assertTrue(server.isRunning());
@@ -21,6 +24,7 @@ public class BasicsTest {
     assertTrue(server.getThread().isAlive());
 
     server.stop();
+    System.setOut(originalOut);
     assertFalse(server.isRunning());
     assertNull(server.getThread());
   }
