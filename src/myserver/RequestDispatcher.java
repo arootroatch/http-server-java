@@ -7,13 +7,32 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.Set;
 
 import static myserver.routes.Utils.send404;
+import static myserver.routes.Utils.send405;
 
 public class RequestDispatcher {
+  private final Route folderHandler = new Folder();
+  private final Route staticFileHandler = new StaticFile();
+  private final Map<String, Route> routes;
+  private final String rootDir;
 
-  public static void dispatch(HttpRequest request, String rootDir,
-                              Map<String, Route> routes, OutputStream outputStream) {
+  public RequestDispatcher(String rootDir, Map<String, Route> routes) {
+    this.rootDir = rootDir;
+    this.routes = routes;
+  }
+
+  private static final Set<String> RECOGNIZED_METHODS = Set.of(
+      "GET", "HEAD", "POST", "PUT", "DELETE", "PATCH", "OPTIONS");
+
+  public void dispatch(HttpRequest request, OutputStream outputStream) {
+    String method = request.method();
+    if (!method.isEmpty() && !RECOGNIZED_METHODS.contains(method)) {
+      send405(outputStream);
+      return;
+    }
+
     String path = request.path();
 
     if (!isPathSafe(rootDir, path)) {
@@ -29,9 +48,9 @@ public class RequestDispatcher {
     } else {
       File file = new File(rootDir + path);
       if (file.isDirectory()) {
-        new Folder().serve(connData, outputStream);
+        folderHandler.serve(connData, outputStream);
       } else if (file.isFile()) {
-        new StaticFile().serve(connData, outputStream);
+        staticFileHandler.serve(connData, outputStream);
       } else {
         send404(outputStream);
       }

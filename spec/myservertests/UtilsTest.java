@@ -72,6 +72,15 @@ public class UtilsTest {
   }
 
   @Test
+  void send405() {
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    Utils.send405(out);
+    String response = out.toString();
+    assertTrue(response.contains("405 Method Not Allowed"));
+    assertTrue(response.contains("Content-Type: text/html"));
+  }
+
+  @Test
   void contentTypeTxt() {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     Utils.sendString("hello", "txt", out);

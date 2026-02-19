@@ -19,12 +19,12 @@ public class MyServer {
   private ExecutorService executor;
   private final int port;
   private final String rootDir;
-  private final Map<String, Route> routes;
+  private final RequestDispatcher dispatcher;
 
   public MyServer(int port, String rootDir, Map<String, Route> routes) {
     this.port = port;
     this.rootDir = rootDir;
-    this.routes = routes;
+    this.dispatcher = new RequestDispatcher(rootDir, routes);
   }
 
   public void start() {
@@ -78,7 +78,7 @@ public class MyServer {
         OutputStream outputStream = client.getOutputStream();
         try {
           HttpRequest request = HttpRequestParser.parse(client.getInputStream());
-          RequestDispatcher.dispatch(request, rootDir, routes, outputStream);
+          dispatcher.dispatch(request, outputStream);
         } catch (Exception e) {
           send500(outputStream);
         }

@@ -82,7 +82,11 @@ public class HttpRequestParser {
     try {
       while ((b = in.read()) != -1) {
         if (b == '\r') {
-          in.read();
+          in.mark(1);
+          int next = in.read();
+          if (next != '\n' && next != -1) {
+            in.reset();
+          }
           break;
         }
         if (b == '\n') break;

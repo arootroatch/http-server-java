@@ -38,6 +38,18 @@ public final class Utils {
     }
   }
 
+  public static void send405(OutputStream outputStream) {
+    try {
+      outputStream.write("HTTP/1.1 405 Method Not Allowed\r\n".getBytes());
+      outputStream.write("Content-Type: text/html\r\n".getBytes());
+      outputStream.write("Server: My Server\r\n\r\n".getBytes());
+      outputStream.write("<h1>Error 405: Method Not Allowed</h1>".getBytes());
+      outputStream.flush();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   public static void send500(OutputStream outputStream) {
     try {
       outputStream.write("HTTP/1.1 500 Internal Server Error\r\n".getBytes());

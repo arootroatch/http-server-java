@@ -1,7 +1,7 @@
 package myservertests;
 
 import myserver.routes.GameSession;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -13,51 +13,52 @@ import java.util.concurrent.Future;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class GameSessionTest {
+  private GameSession gameSession;
 
-  @AfterEach
-  void teardown() {
-    GameSession.clearAll();
+  @BeforeEach
+  void setup() {
+    gameSession = new GameSession();
   }
 
   @Test
   void createSession() {
-    String id = GameSession.createSession(42);
+    String id = gameSession.createSession(42);
     assertNotNull(id);
-    assertEquals(42, GameSession.getNumber(id));
-    assertEquals(7, GameSession.getTriesLeft(id));
+    assertEquals(42, gameSession.getNumber(id));
+    assertEquals(7, gameSession.getTriesLeft(id));
   }
 
   @Test
   void getNumberForUnknownSession() {
-    assertNull(GameSession.getNumber("nonexistent"));
+    assertNull(gameSession.getNumber("nonexistent"));
   }
 
   @Test
   void removeSession() {
-    String id = GameSession.createSession(10);
-    GameSession.removeSession(id);
-    assertNull(GameSession.getNumber(id));
+    String id = gameSession.createSession(10);
+    gameSession.removeSession(id);
+    assertNull(gameSession.getNumber(id));
   }
 
   @Test
   void nullSessionId() {
-    assertNull(GameSession.getNumber(null));
+    assertNull(gameSession.getNumber(null));
   }
 
   @Test
   void decrementTries() {
-    String id = GameSession.createSession(42);
-    GameSession.decrementTries(id);
-    assertEquals(6, GameSession.getTriesLeft(id));
+    String id = gameSession.createSession(42);
+    gameSession.decrementTries(id);
+    assertEquals(6, gameSession.getTriesLeft(id));
   }
 
   @Test
   void triesReachZero() {
-    String id = GameSession.createSession(42);
+    String id = gameSession.createSession(42);
     for (int i = 0; i < 7; i++) {
-      GameSession.decrementTries(id);
+      gameSession.decrementTries(id);
     }
-    assertEquals(0, GameSession.getTriesLeft(id));
+    assertEquals(0, gameSession.getTriesLeft(id));
   }
 
   @Test
@@ -66,13 +67,22 @@ public class GameSessionTest {
     List<Future<String>> futures = new ArrayList<>();
     for (int i = 0; i < 100; i++) {
       final int num = i;
-      futures.add(executor.submit(() -> GameSession.createSession(num)));
+      futures.add(executor.submit(() -> gameSession.createSession(num)));
     }
     for (Future<String> future : futures) {
       String id = future.get();
       assertNotNull(id);
-      assertNotNull(GameSession.getNumber(id));
+      assertNotNull(gameSession.getNumber(id));
     }
     executor.shutdown();
+  }
+
+  @Test
+  void getSessionReturnsAtomicSnapshot() {
+    String id = gameSession.createSession(42);
+    GameSession.SessionData snapshot = gameSession.getSession(id);
+    assertNotNull(snapshot);
+    assertEquals(42, snapshot.number());
+    assertEquals(7, snapshot.triesLeft());
   }
 }

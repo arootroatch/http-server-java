@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.OutputStream;
 
 import static myserver.routes.DirectoryContents.getContentsOfDir;
+import static myserver.routes.DirectoryContents.renderAsHTML;
 import static myserver.routes.Utils.send404;
 import static myserver.routes.Utils.sendString;
 
@@ -25,40 +26,19 @@ public class Listing implements Route {
         return;
       }
       String[] contents = getContentsOfDir(rootDir + "/" + dir);
-      sendString(renderContentsAsHTML("/" + dir, rootDir, contents), "html", outputStream);
+      String safeDir = Utils.escapeHtml("/" + dir);
+      String html = renderAsHTML(contents,
+          item -> new File(rootDir + "/" + dir + "/" + item).isFile(),
+          item -> safeDir + "/" + Utils.escapeHtml(item),
+          item -> "/listing" + safeDir + "/" + Utils.escapeHtml(item));
+      sendString(html, "html", outputStream);
     } else {
-      sendString(renderContentsAsHTML(rootDir, rootDir, getContentsOfDir(rootDir)), "html", outputStream);
+      String[] contents = getContentsOfDir(rootDir);
+      String html = renderAsHTML(contents,
+          item -> new File(rootDir + "/" + item).isFile(),
+          item -> "/" + Utils.escapeHtml(item),
+          item -> "/listing/" + Utils.escapeHtml(item));
+      sendString(html, "html", outputStream);
     }
-  }
-
-  private String renderContentsAsHTML(String dir, String rootDir, String[] contents) {
-    StringBuilder html = new StringBuilder();
-    html.append("<ul>");
-    for (String item : contents) {
-      String li;
-      String fullPath = dir.equals(rootDir) ? rootDir + "/" + item : rootDir + dir + "/" + item;
-      if (new File(fullPath).isFile()) {
-        li = setFileLi(dir, rootDir, item);
-      } else {
-        li = setFolderLi(dir, rootDir, item);
-      }
-      html.append(li);
-    }
-    html.append("</ul>");
-    return html.toString();
-  }
-
-  private String setFileLi(String dir, String rootDir, String item) {
-    String safeItem = Utils.escapeHtml(item);
-    if (dir.equals(rootDir)) return String.format("<li><a href=\"/%s\">%s</a></li>", safeItem, safeItem);
-    String safeDir = Utils.escapeHtml(dir);
-    return String.format("<li><a href=\"%s/%s\">%s</a></li>", safeDir, safeItem, safeItem);
-  }
-
-  private String setFolderLi(String dir, String rootDir, String item) {
-    String safeItem = Utils.escapeHtml(item);
-    if (dir.equals(rootDir)) return String.format("<li><a href=\"/listing/%s\">%s</a></li>", safeItem, safeItem);
-    String safeDir = Utils.escapeHtml(dir);
-    return String.format("<li><a href=\"/listing/%s/%s\">%s</a></li>", safeDir, safeItem, safeItem);
   }
 }

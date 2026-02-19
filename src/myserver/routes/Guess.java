@@ -11,6 +11,11 @@ import java.util.List;
 import static myserver.routes.Utils.sendString;
 
 public class Guess implements Route {
+  private final GameSession gameSession;
+
+  public Guess(GameSession gameSession) {
+    this.gameSession = gameSession;
+  }
 
   @Override
   public void serve(ConnectionData connData, OutputStream outputStream) {
@@ -18,8 +23,8 @@ public class Guess implements Route {
     String method = request.method();
     String sessionId = request.cookieValue("session");
 
-    boolean isNewGame = method.equals("GET") || sessionId.isEmpty()
-        || GameSession.getNumber(sessionId) == null;
+    GameSession.SessionData session = gameSession.getSession(sessionId);
+    boolean isNewGame = method.equals("GET") || sessionId.isEmpty() || session == null;
 
     Integer guessReceived = null;
     if (method.equals("POST") && request.body().length > 0) {
@@ -37,25 +42,25 @@ public class Guess implements Route {
     int numberToGuess;
     if (isNewGame) {
       numberToGuess = (int) Math.floor(Math.random() * 100) + 1;
-      sessionId = GameSession.createSession(numberToGuess);
+      sessionId = gameSession.createSession(numberToGuess);
     } else {
-      numberToGuess = GameSession.getNumber(sessionId);
+      numberToGuess = session.number();
     }
 
     int triesLeft;
     if (isNewGame) {
-      triesLeft = GameSession.getTriesLeft(sessionId);
+      triesLeft = gameSession.getTriesLeft(sessionId);
     } else if (guessReceived != null && guessReceived == numberToGuess) {
       triesLeft = 0;
-      GameSession.removeSession(sessionId);
+      gameSession.removeSession(sessionId);
     } else if (guessReceived != null) {
-      GameSession.decrementTries(sessionId);
-      triesLeft = GameSession.getTriesLeft(sessionId);
+      GameSession.SessionData updated = gameSession.decrementTries(sessionId);
+      triesLeft = updated != null ? updated.triesLeft() : 0;
       if (triesLeft == 0) {
-        GameSession.removeSession(sessionId);
+        gameSession.removeSession(sessionId);
       }
     } else {
-      triesLeft = GameSession.getTriesLeft(sessionId);
+      triesLeft = session.triesLeft();
     }
 
     String html = renderGuessHTML(guessReceived, numberToGuess, triesLeft);

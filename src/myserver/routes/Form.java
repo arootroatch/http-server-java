@@ -60,8 +60,9 @@ public class Form implements Route {
     StringBuilder html = new StringBuilder();
     html.append("<ul>");
     for (String s : params) {
-      String name = Utils.escapeHtml(s.split("=")[0]);
-      String value = Utils.escapeHtml(s.split("=")[1]);
+      String[] parts = s.split("=", 2);
+      String name = Utils.escapeHtml(parts[0]);
+      String value = parts.length > 1 ? Utils.escapeHtml(parts[1]) : "";
       String li = String.format("<li>%s: %s</li>", name, value);
       html.append(li);
     }

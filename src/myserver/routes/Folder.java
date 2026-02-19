@@ -3,12 +3,14 @@ package myserver.routes;
 import myserver.ConnectionData;
 import myserver.Route;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 
 import static myserver.routes.DirectoryContents.getContentsOfDir;
+import static myserver.routes.DirectoryContents.renderAsHTML;
 import static myserver.routes.Utils.*;
 
 public class Folder implements Route {
@@ -27,25 +29,12 @@ public class Folder implements Route {
     } else if (contents.length == 0) {
       send404(outputStream);
     } else {
-      sendString(renderContentsAsHTML(path, rootDir, contents), "html", outputStream);
+      String safeDir = Utils.escapeHtml(path);
+      String html = renderAsHTML(contents,
+          item -> new File(rootDir + path + "/" + item).isFile(),
+          item -> safeDir + "/" + Utils.escapeHtml(item),
+          item -> "/" + safeDir + "/" + Utils.escapeHtml(item));
+      sendString(html, "html", outputStream);
     }
-  }
-
-  private String renderContentsAsHTML(String dir, String rootDir, String[] contents) {
-    StringBuilder html = new StringBuilder();
-    html.append("<ul>");
-    for (String item : contents) {
-      String safeItem = Utils.escapeHtml(item);
-      String safeDir = Utils.escapeHtml(dir);
-      String li;
-      if (new java.io.File(rootDir + dir + "/" + item).isFile()) {
-        li = String.format("<li><a href=\"%s/%s\">%s</a></li>", safeDir, safeItem, safeItem);
-      } else {
-        li = String.format("<li><a href=\"/%s/%s\">%s</a></li>", safeDir, safeItem, safeItem);
-      }
-      html.append(li);
-    }
-    html.append("</ul>");
-    return html.toString();
   }
 }

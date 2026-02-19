@@ -5,7 +5,8 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 
 import static myserver.routes.DirectoryContents.getContentsOfDir;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static myserver.routes.DirectoryContents.renderAsHTML;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class DirectoryContentsTest {
   @Test
@@ -24,5 +25,29 @@ public class DirectoryContentsTest {
     assertTrue(Arrays.toString(files).contains("autobot.png"));
     assertTrue(Arrays.toString(files).contains("decepticon.jpg"));
     assertTrue(Arrays.toString(files).contains("decepticon.png"));
+  }
+
+  @Test
+  void renderAsHTMLFiles() {
+    String[] contents = {"file.txt"};
+    String result = renderAsHTML(contents, item -> true,
+        item -> "/files/" + item, item -> "/folders/" + item);
+    assertTrue(result.contains("<a href=\"/files/file.txt\">file.txt</a>"));
+  }
+
+  @Test
+  void renderAsHTMLFolders() {
+    String[] contents = {"subdir"};
+    String result = renderAsHTML(contents, item -> false,
+        item -> "/files/" + item, item -> "/folders/" + item);
+    assertTrue(result.contains("<a href=\"/folders/subdir\">subdir</a>"));
+  }
+
+  @Test
+  void renderAsHTMLEscapesNames() {
+    String[] contents = {"<script>alert(1)</script>"};
+    String result = renderAsHTML(contents, item -> true,
+        item -> "/files/" + item, item -> "/folders/" + item);
+    assertTrue(result.contains(">&lt;script&gt;alert(1)&lt;/script&gt;</a>"));
   }
 }

@@ -33,7 +33,7 @@ public class BasicsTest {
   void servesIndex() {
     HttpRequest request = new HttpRequest("GET", "/", "", Map.of(), new byte[0]);
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    RequestDispatcher.dispatch(request, "testroot", Map.of(), out);
+    new RequestDispatcher("testroot", Map.of()).dispatch(request, out);
 
     String response = out.toString();
     assertTrue(response.contains("200 OK"));
@@ -58,7 +58,7 @@ public class BasicsTest {
   void status404() {
     HttpRequest request = new HttpRequest("GET", "/blah", "", Map.of(), new byte[0]);
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    RequestDispatcher.dispatch(request, "testroot", Map.of(), out);
+    new RequestDispatcher("testroot", Map.of()).dispatch(request, out);
 
     String response = out.toString();
     assertTrue(response.contains("404 Not Found"));
@@ -68,7 +68,7 @@ public class BasicsTest {
   void serverHeader() {
     HttpRequest request = new HttpRequest("GET", "/", "", Map.of(), new byte[0]);
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    RequestDispatcher.dispatch(request, "testroot", Map.of(), out);
+    new RequestDispatcher("testroot", Map.of()).dispatch(request, out);
 
     String response = out.toString();
     assertTrue(response.contains("Server: My Server"));

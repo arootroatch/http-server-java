@@ -79,6 +79,25 @@ public class HttpRequestParserTest {
   }
 
   @Test
+  void parseRequestWithBareCarriageReturn() {
+    String raw = "GET /hello HTTP/1.1\r\rHost: localhost\r\n\r\n";
+    InputStream is = new ByteArrayInputStream(raw.getBytes());
+    HttpRequest request = HttpRequestParser.parse(is);
+    assertEquals("GET", request.method());
+    assertEquals("/hello", request.path());
+  }
+
+  @Test
+  void parseRequestWithLFOnly() {
+    String raw = "GET /hello HTTP/1.1\nHost: localhost\n\n";
+    InputStream is = new ByteArrayInputStream(raw.getBytes());
+    HttpRequest request = HttpRequestParser.parse(is);
+    assertEquals("GET", request.method());
+    assertEquals("/hello", request.path());
+    assertEquals("localhost", request.header("Host"));
+  }
+
+  @Test
   void rejectsOversizedContentLength() {
     String raw = "POST /upload HTTP/1.1\r\nContent-Length: 20000000\r\n\r\n";
     InputStream is = new ByteArrayInputStream(raw.getBytes());

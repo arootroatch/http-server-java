@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Objects;
 
 public class Main {
-  private static final Map<String, Route> routes = new HashMap<>();
 
   public static void main(String[] args) {
     int port = setPort(args);
@@ -25,18 +24,16 @@ public class Main {
       return;
     }
 
-    setRoute("/form", new Form());
-    setRoute("/guess", new Guess());
-    setRoute("/hello", new Hello());
-    setRoute("/listing", new Listing());
-    setRoute("/ping", new Ping());
+    GameSession gameSession = new GameSession();
+    Map<String, Route> routes = new HashMap<>();
+    routes.put("/form", new Form());
+    routes.put("/guess", new Guess(gameSession));
+    routes.put("/hello", new Hello());
+    routes.put("/listing", new Listing());
+    routes.put("/ping", new Ping());
 
     MyServer server = new MyServer(port, rootDir, routes);
     server.start();
-  }
-
-  public static void setRoute(String route, Route handler) {
-    routes.put(route, handler);
   }
 
   private static int setPort(String[] args) {

@@ -4,17 +4,16 @@ import myserver.ConnectionData;
 import myserver.Route;
 
 import java.io.OutputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import static myserver.routes.Utils.sendString;
 
 public class Ping implements Route {
+  private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
   public void serve(ConnectionData connData, OutputStream outputStream) {
-    String pattern = "yyyy-MM-dd HH:mm:ss";
-    SimpleDateFormat sdf = new SimpleDateFormat(pattern);
-    String start = sdf.format(new Date());
+    String start = LocalDateTime.now().format(FORMATTER);
 
     String path = connData.request().path();
     String[] segments = path.split("/");
@@ -31,7 +30,7 @@ public class Ping implements Route {
 
     try {
       Thread.sleep(delay * 1000L);
-      String end = sdf.format(new Date());
+      String end = LocalDateTime.now().format(FORMATTER);
       sendString(renderPingHTML(start, end), "html", outputStream);
     } catch (InterruptedException e) {
       throw new RuntimeException(e);

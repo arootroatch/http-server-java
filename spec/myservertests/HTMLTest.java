@@ -40,6 +40,20 @@ public class HTMLTest {
   }
 
   @Test
+  void paramsToHTMLMissingEquals() {
+    String[] params = {"keyonly"};
+    String result = queryParamsToHTML(params);
+    assertTrue(result.contains("<li>keyonly: </li>"));
+  }
+
+  @Test
+  void paramsToHTMLValueContainsEquals() {
+    String[] params = {"data=a=b=c"};
+    String result = queryParamsToHTML(params);
+    assertTrue(result.contains("<li>data: a=b=c</li>"));
+  }
+
+  @Test
   void paramsToHTMLWithXSS() {
     String[] params = {"name=<script>alert(1)</script>"};
     String result = queryParamsToHTML(params);
