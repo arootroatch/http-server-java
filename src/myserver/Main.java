@@ -15,12 +15,12 @@ public class Main {
     int port = setPort(args);
     String rootDir = setRootDir(args);
 
-    if (contains(args, "-h") > -1) {
+    if (indexOf(args, "-h") > -1) {
       Print.printHelp();
       return;
     }
 
-    if (contains(args, "-x") > -1) {
+    if (indexOf(args, "-x") > -1) {
       Print.printConfig(port, rootDir);
       return;
     }
@@ -35,22 +35,18 @@ public class Main {
     server.start();
   }
 
-  public static void setRoute(String route, Route classname) {
-    routes.put(route, classname);
-  }
-
-  public static void removeRoute(String route) {
-    routes.remove(route);
+  public static void setRoute(String route, Route handler) {
+    routes.put(route, handler);
   }
 
   private static Integer setPort(String[] args) {
-    int indexOfArg = contains(args, "-p");
+    int indexOfArg = indexOf(args, "-p");
     if (indexOfArg > -1) return Integer.parseInt(args[indexOfArg + 1]);
     else return 80;
   }
 
   private static String setRootDir(String[] args) {
-    int indexOfArg = contains(args, "-r");
+    int indexOfArg = indexOf(args, "-r");
     String dir = indexOfArg > -1 ? args[indexOfArg + 1] : "testroot";
     try {
       return new File(dir).getCanonicalPath();
@@ -59,7 +55,7 @@ public class Main {
     }
   }
 
-  private static int contains(String[] args, String s) {
+  private static int indexOf(String[] args, String s) {
     if (args == null) return -1;
 
     for (int i = 0; i < args.length; i++) {

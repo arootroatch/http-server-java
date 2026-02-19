@@ -33,11 +33,10 @@ public class HTMLTest {
   void paramsToHTML() {
     String[] params = {"foo=1", "bar=2"};
     String result = queryParamsToHTML(params);
-    int i = result.length();
 
     assertEquals("<ul>", result.substring(0, 4));
     assertTrue(result.contains("<li>foo: 1</li>"));
     assertTrue(result.contains("<li>bar: 2</li>"));
-    assertEquals("</ul>\r\n", result.substring(i - 7));
+    assertTrue(result.endsWith("</ul>\r\n"));
   }
 }

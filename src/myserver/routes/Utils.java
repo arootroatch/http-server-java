@@ -9,6 +9,23 @@ public final class Utils {
   private Utils() {
   }
 
+  public static String escapeHtml(String input) {
+    if (input == null) return "";
+    StringBuilder sb = new StringBuilder(input.length());
+    for (int i = 0; i < input.length(); i++) {
+      char c = input.charAt(i);
+      switch (c) {
+        case '&' -> sb.append("&amp;");
+        case '<' -> sb.append("&lt;");
+        case '>' -> sb.append("&gt;");
+        case '"' -> sb.append("&quot;");
+        case '\'' -> sb.append("&#x27;");
+        default -> sb.append(c);
+      }
+    }
+    return sb.toString();
+  }
+
   public static void send404(OutputStream outputStream) {
     try {
       outputStream.write(("HTTP/1.1 404 Not Found\r\n").getBytes());
@@ -21,6 +38,16 @@ public final class Utils {
     }
   }
 
+  public static void send500(OutputStream outputStream) {
+    try {
+      outputStream.write("HTTP/1.1 500 Internal Server Error\r\n".getBytes());
+      outputStream.write("Content-Type: text/html\r\n".getBytes());
+      outputStream.write("Server: My Server\r\n\r\n".getBytes());
+      outputStream.write("<h1>500 Internal Server Error</h1>".getBytes());
+      outputStream.flush();
+    } catch (IOException e) { /* client disconnected */ }
+  }
+
   public static void sendFile(FileInputStream file, String filetype, OutputStream outputStream) {
     byte[] fileBytes;
     try {
@@ -31,11 +58,11 @@ public final class Utils {
     writeToOutputStream(filetype, outputStream, fileBytes, List.of());
   }
 
-  public static void sendHtmlString(String content, String filetype, OutputStream outputStream) {
-    sendHtmlString(content, filetype, outputStream, List.of());
+  public static void sendString(String content, String filetype, OutputStream outputStream) {
+    sendString(content, filetype, outputStream, List.of());
   }
 
-  public static void sendHtmlString(String content, String filetype, OutputStream outputStream,
+  public static void sendString(String content, String filetype, OutputStream outputStream,
                                     List<String> extraHeaders) {
     byte[] fileBytes = content.getBytes();
     writeToOutputStream(filetype, outputStream, fileBytes, extraHeaders);
@@ -46,7 +73,7 @@ public final class Utils {
     try {
       int byteCount = fileBytes.length;
       outputStream.write(("HTTP/1.1 200 OK\r\n").getBytes());
-      outputStream.write(setContentType(filetype).getBytes());
+      outputStream.write(contentTypeHeader(filetype).getBytes());
       for (String header : extraHeaders) {
         outputStream.write((header + "\r\n").getBytes());
       }
@@ -59,7 +86,7 @@ public final class Utils {
     }
   }
 
-  static String setContentType(String filetype) {
+  static String contentTypeHeader(String filetype) {
     return switch (filetype) {
       case "jpg", "jpeg" -> "Content-Type: image/jpeg\r\n";
       case "png" -> "Content-Type: image/png\r\n";

@@ -27,7 +27,7 @@ public class Folder implements Route {
     } else if (contents.length == 0) {
       send404(outputStream);
     } else {
-      sendHtmlString(renderContentsAsHTML(path, contents), "html", outputStream);
+      sendString(renderContentsAsHTML(path, contents), "html", outputStream);
     }
   }
 

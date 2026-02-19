@@ -7,7 +7,7 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import static myserver.routes.Utils.sendHtmlString;
+import static myserver.routes.Utils.sendString;
 
 public class Ping implements Route {
 
@@ -23,7 +23,7 @@ public class Ping implements Route {
     try {
       Thread.sleep(delay * 1000L);
       String end = sdf.format(new Date());
-      sendHtmlString(renderPingHTML(start, end), "html", outputStream);
+      sendString(renderPingHTML(start, end), "html", outputStream);
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }

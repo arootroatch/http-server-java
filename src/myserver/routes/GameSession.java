@@ -20,4 +20,8 @@ public class GameSession {
   public static void removeSession(String sessionId) {
     if (sessionId != null) sessions.remove(sessionId);
   }
+
+  public static void clearAll() {
+    sessions.clear();
+  }
 }

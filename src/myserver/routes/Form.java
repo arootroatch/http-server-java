@@ -8,7 +8,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 import static myserver.routes.Utils.send404;
-import static myserver.routes.Utils.sendHtmlString;
+import static myserver.routes.Utils.sendString;
 
 public class Form implements Route {
 
@@ -23,13 +23,13 @@ public class Form implements Route {
     if (request.method().equals("POST")) {
       String addHTML = postRequestHTML(request);
       String newHTML = html.split("</html>")[0] + addHTML + "</html>";
-      sendHtmlString(newHTML, "html", outputStream);
+      sendString(newHTML, "html", outputStream);
     } else if (!queryString.isEmpty()) {
       String addHTML = queryParamsToHTML(getQueryParams(queryString));
       String newHTML = html.split("</html>")[0] + addHTML + "</html>";
-      sendHtmlString(newHTML, "html", outputStream);
+      sendString(newHTML, "html", outputStream);
     } else {
-      sendHtmlString(html, "html", outputStream);
+      sendString(html, "html", outputStream);
     }
   }
 

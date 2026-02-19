@@ -6,7 +6,7 @@ import myserver.Route;
 import java.io.OutputStream;
 
 import static myserver.routes.DirectoryContents.getContentsOfDir;
-import static myserver.routes.Utils.sendHtmlString;
+import static myserver.routes.Utils.sendString;
 
 public class Listing implements Route {
 
@@ -18,9 +18,9 @@ public class Listing implements Route {
     if (split.length > 2) {
       String dir = split[2];
       String[] contents = getContentsOfDir(rootDir + "/" + dir);
-      sendHtmlString(renderContentsAsHTML("/" + dir, rootDir, contents), "html", outputStream);
+      sendString(renderContentsAsHTML("/" + dir, rootDir, contents), "html", outputStream);
     } else {
-      sendHtmlString(renderContentsAsHTML(rootDir, rootDir, getContentsOfDir(rootDir)), "html", outputStream);
+      sendString(renderContentsAsHTML(rootDir, rootDir, getContentsOfDir(rootDir)), "html", outputStream);
     }
   }
 

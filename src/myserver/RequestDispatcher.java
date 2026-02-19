@@ -1,7 +1,9 @@
 package myserver;
 
 import myserver.routes.Folder;
+import myserver.routes.StaticFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
@@ -25,11 +27,11 @@ public class RequestDispatcher {
     if (routes.containsKey(routeKey)) {
       routes.get(routeKey).serve(connData, outputStream);
     } else {
-      java.io.File file = new java.io.File(rootDir + path);
+      File file = new File(rootDir + path);
       if (file.isDirectory()) {
         new Folder().serve(connData, outputStream);
       } else if (file.isFile()) {
-        new myserver.routes.File().serve(connData, outputStream);
+        new StaticFile().serve(connData, outputStream);
       } else {
         send404(outputStream);
       }
@@ -47,8 +49,8 @@ public class RequestDispatcher {
 
   public static boolean isPathSafe(String rootDir, String path) {
     try {
-      java.io.File root = new java.io.File(rootDir).getCanonicalFile();
-      java.io.File target = new java.io.File(rootDir + path).getCanonicalFile();
+      File root = new File(rootDir).getCanonicalFile();
+      File target = new File(rootDir + path).getCanonicalFile();
       return target.getPath().startsWith(root.getPath());
     } catch (IOException e) {
       return false;

@@ -11,7 +11,7 @@ import java.io.OutputStream;
 import static myserver.routes.Utils.send404;
 import static myserver.routes.Utils.sendFile;
 
-public class File implements Route {
+public class StaticFile implements Route {
 
   public void serve(ConnectionData connData, OutputStream outputStream) {
     String rootDir = connData.rootDir();

@@ -27,7 +27,6 @@ public class FilesTest {
   void listing() {
     String response = serveAndGetBody("GET", "/listing", "testroot", new Listing());
     String body = response.split("\r\n\r\n")[1];
-    int i = body.length();
 
     assertTrue(body.startsWith("<ul>"));
     assertTrue(body.endsWith("</ul>"));
@@ -89,7 +88,7 @@ public class FilesTest {
     ConnectionData connData = new ConnectionData(request, "testroot");
     ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-    new myserver.routes.File().serve(connData, out);
+    new myserver.routes.StaticFile().serve(connData, out);
 
     String response = out.toString();
     String file = new String(new FileInputStream("testroot/index.html").readAllBytes());
@@ -103,7 +102,7 @@ public class FilesTest {
     ConnectionData connData = new ConnectionData(request, "testroot");
     ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-    new myserver.routes.File().serve(connData, out);
+    new myserver.routes.StaticFile().serve(connData, out);
 
     String response = out.toString();
     assertTrue(response.contains("Content-Type: image/jpeg"));
@@ -116,7 +115,7 @@ public class FilesTest {
     ConnectionData connData = new ConnectionData(request, "testroot");
     ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-    new myserver.routes.File().serve(connData, out);
+    new myserver.routes.StaticFile().serve(connData, out);
 
     String response = out.toString();
     assertTrue(response.contains("Content-Type: image/png"));
@@ -129,7 +128,7 @@ public class FilesTest {
     ConnectionData connData = new ConnectionData(request, "testroot");
     ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-    new myserver.routes.File().serve(connData, out);
+    new myserver.routes.StaticFile().serve(connData, out);
 
     String response = out.toString();
     assertTrue(response.contains("Content-Type: application/pdf"));

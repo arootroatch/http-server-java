@@ -42,7 +42,7 @@ public class BasicsTest {
     ConnectionData connData = new ConnectionData(request, "testroot");
     ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-    new myserver.routes.File().serve(connData, out);
+    new myserver.routes.StaticFile().serve(connData, out);
 
     String response = out.toString();
     assertTrue(response.contains("200 OK"));

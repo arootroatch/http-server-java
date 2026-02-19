@@ -8,7 +8,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import static myserver.routes.Utils.sendHtmlString;
+import static myserver.routes.Utils.sendString;
 
 public class Guess implements Route {
 
@@ -56,7 +56,7 @@ public class Guess implements Route {
     }
     extraHeaders.add("Set-Cookie: tries-left=" + triesLeft);
 
-    sendHtmlString(html, "html", outputStream, extraHeaders);
+    sendString(html, "html", outputStream, extraHeaders);
   }
 
   private String renderGuessHTML(Integer guessReceived, int numberToGuess, int triesLeft) {
