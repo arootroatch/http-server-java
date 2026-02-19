@@ -13,7 +13,7 @@ public final class Utils {
     try {
       outputStream.write(("HTTP/1.1 404 Not Found\r\n").getBytes());
       outputStream.write(("Content-Type: text/html\r\n").getBytes());
-      outputStream.write(("Server: My MacBook Pro\r\n\r\n").getBytes());
+      outputStream.write(("Server: My Server\r\n\r\n").getBytes());
       outputStream.write(("<h1>Error 404: Not Found</h1>").getBytes());
       outputStream.flush();
     } catch (IOException e) {
@@ -51,7 +51,7 @@ public final class Utils {
         outputStream.write((header + "\r\n").getBytes());
       }
       outputStream.write(("Content-Length: " + byteCount + "\r\n").getBytes());
-      outputStream.write(("Server: My MacBook Pro\r\n\r\n").getBytes());
+      outputStream.write(("Server: My Server\r\n\r\n").getBytes());
       outputStream.write(fileBytes);
       outputStream.flush();
     } catch (IOException e) {

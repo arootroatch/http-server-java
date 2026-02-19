@@ -1,4 +1,4 @@
-(defproject http-spec "0.1.0-SNAPSHOT"
+(defproject http-server-java "0.1.0-SNAPSHOT"
   :description "Micah's HTTP Server Challenge Spec"
   :url "https://github.com/slagyr/http-spec"
   :license {:name "GNU GENERAL PUBLIC LICENSE"}

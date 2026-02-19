@@ -67,6 +67,6 @@ public class BasicsTest {
     RequestDispatcher.dispatch(request, "testroot", Map.of(), out);
 
     String response = out.toString();
-    assertTrue(response.contains("Server: My MacBook Pro"));
+    assertTrue(response.contains("Server: My Server"));
   }
 }

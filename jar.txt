@@ -1,3 +1,0 @@
-To create a jar file from the compiled code, `cd` into the `out` directory and run:
-
-jar -cfe MyHttpServer.jar MyServer.Main .
