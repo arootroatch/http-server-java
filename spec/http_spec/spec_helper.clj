@@ -12,7 +12,7 @@
 (def server-atom (atom nil))
 
 (defn read-config []
-  (edn/read-string (slurp (io/resource "config.edn"))))
+  (edn/read-string (slurp (io/resource "http_spec/config.edn"))))
 
 (defn config []
   (when-not @config-atom (reset! config-atom (read-config)))
