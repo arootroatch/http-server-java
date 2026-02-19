@@ -4,8 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static myserver.routes.Form.getQueryParams;
 import static myserver.routes.Form.queryParamsToHTML;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class HTMLTest {
   @Test
@@ -38,5 +37,13 @@ public class HTMLTest {
     assertTrue(result.contains("<li>foo: 1</li>"));
     assertTrue(result.contains("<li>bar: 2</li>"));
     assertTrue(result.endsWith("</ul>\r\n"));
+  }
+
+  @Test
+  void paramsToHTMLWithXSS() {
+    String[] params = {"name=<script>alert(1)</script>"};
+    String result = queryParamsToHTML(params);
+    assertTrue(result.contains("&lt;script&gt;"));
+    assertFalse(result.contains("<script>"));
   }
 }

@@ -1,7 +1,7 @@
 package myservertests;
 
 import myserver.Main;
-import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -11,13 +11,18 @@ import java.io.PrintStream;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class CommandLineTest {
-  static ByteArrayOutputStream outContent;
-  static final PrintStream originalOut = System.out;
+  ByteArrayOutputStream outContent;
+  final PrintStream originalOut = System.out;
 
   @BeforeEach
   void setup() {
     outContent = new ByteArrayOutputStream();
     System.setOut(new PrintStream(outContent));
+  }
+
+  @AfterEach
+  void teardown() {
+    System.setOut(originalOut);
   }
 
   @Test
@@ -85,8 +90,24 @@ public class CommandLineTest {
     assertTrue(outContent.toString().contains("root"));
   }
 
-  @AfterAll
-  static void teardown() {
-    System.setOut(originalOut);
+  @Test
+  void invalidPort() {
+    String[] args = {"-x", "-p", "abc"};
+    Main.main(args);
+    assertTrue(outContent.toString().contains("Running on port: 80"));
+  }
+
+  @Test
+  void portOutOfRange() {
+    String[] args = {"-x", "-p", "99999"};
+    Main.main(args);
+    assertTrue(outContent.toString().contains("Running on port: 80"));
+  }
+
+  @Test
+  void negativePort() {
+    String[] args = {"-x", "-p", "-1"};
+    Main.main(args);
+    assertTrue(outContent.toString().contains("Running on port: 80"));
   }
 }

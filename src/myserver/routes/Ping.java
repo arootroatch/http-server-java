@@ -18,7 +18,16 @@ public class Ping implements Route {
 
     String path = connData.request().path();
     String[] segments = path.split("/");
-    int delay = segments.length > 2 ? Integer.parseInt(segments[2]) : 0;
+    int delay = 0;
+    if (segments.length > 2) {
+      try {
+        delay = Integer.parseInt(segments[2]);
+      } catch (NumberFormatException e) {
+        delay = 0;
+      }
+    }
+    if (delay < 0) delay = 0;
+    if (delay > 30) delay = 30;
 
     try {
       Thread.sleep(delay * 1000L);

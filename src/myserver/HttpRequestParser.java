@@ -10,6 +10,8 @@ import java.util.Map;
 
 public class HttpRequestParser {
 
+  public static final int MAX_BODY_SIZE = 10 * 1024 * 1024;
+
   public static HttpRequest parse(InputStream inputStream) {
     BufferedInputStream bis = new BufferedInputStream(inputStream);
 
@@ -47,7 +49,15 @@ public class HttpRequestParser {
     byte[] body = new byte[0];
     String contentLengthStr = headers.get("Content-Length");
     if (contentLengthStr != null) {
-      int contentLength = Integer.parseInt(contentLengthStr.trim());
+      int contentLength;
+      try {
+        contentLength = Integer.parseInt(contentLengthStr.trim());
+      } catch (NumberFormatException e) {
+        return new HttpRequest("", "", "", Map.of(), new byte[0]);
+      }
+      if (contentLength > MAX_BODY_SIZE) {
+        return new HttpRequest(method, path, queryString, headers, new byte[0]);
+      }
       if (contentLength > 0) {
         body = new byte[contentLength];
         int totalRead = 0;

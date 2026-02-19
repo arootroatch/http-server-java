@@ -1,6 +1,7 @@
 package myservertests;
 
 import myserver.routes.GameSession;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -13,11 +14,17 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class GameSessionTest {
 
+  @AfterEach
+  void teardown() {
+    GameSession.clearAll();
+  }
+
   @Test
   void createSession() {
     String id = GameSession.createSession(42);
     assertNotNull(id);
     assertEquals(42, GameSession.getNumber(id));
+    assertEquals(7, GameSession.getTriesLeft(id));
   }
 
   @Test
@@ -35,6 +42,22 @@ public class GameSessionTest {
   @Test
   void nullSessionId() {
     assertNull(GameSession.getNumber(null));
+  }
+
+  @Test
+  void decrementTries() {
+    String id = GameSession.createSession(42);
+    GameSession.decrementTries(id);
+    assertEquals(6, GameSession.getTriesLeft(id));
+  }
+
+  @Test
+  void triesReachZero() {
+    String id = GameSession.createSession(42);
+    for (int i = 0; i < 7; i++) {
+      GameSession.decrementTries(id);
+    }
+    assertEquals(0, GameSession.getTriesLeft(id));
   }
 
   @Test

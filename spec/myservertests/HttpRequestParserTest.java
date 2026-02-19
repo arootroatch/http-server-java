@@ -77,4 +77,28 @@ public class HttpRequestParserTest {
     HttpRequest request = HttpRequestParser.parse(is);
     assertEquals("", request.cookieValue("session"));
   }
+
+  @Test
+  void rejectsOversizedContentLength() {
+    String raw = "POST /upload HTTP/1.1\r\nContent-Length: 20000000\r\n\r\n";
+    InputStream is = new ByteArrayInputStream(raw.getBytes());
+    HttpRequest request = HttpRequestParser.parse(is);
+    assertEquals(0, request.body().length);
+  }
+
+  @Test
+  void invalidContentLength() {
+    String raw = "POST /form HTTP/1.1\r\nContent-Length: abc\r\n\r\n";
+    InputStream is = new ByteArrayInputStream(raw.getBytes());
+    HttpRequest request = HttpRequestParser.parse(is);
+    assertEquals("", request.method());
+  }
+
+  @Test
+  void negativeContentLength() {
+    String raw = "POST /form HTTP/1.1\r\nContent-Length: -1\r\n\r\n";
+    InputStream is = new ByteArrayInputStream(raw.getBytes());
+    HttpRequest request = HttpRequestParser.parse(is);
+    assertEquals(0, request.body().length);
+  }
 }

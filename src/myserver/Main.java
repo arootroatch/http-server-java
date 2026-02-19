@@ -39,10 +39,18 @@ public class Main {
     routes.put(route, handler);
   }
 
-  private static Integer setPort(String[] args) {
+  private static int setPort(String[] args) {
     int indexOfArg = indexOf(args, "-p");
-    if (indexOfArg > -1) return Integer.parseInt(args[indexOfArg + 1]);
-    else return 80;
+    if (indexOfArg > -1 && indexOfArg + 1 < args.length) {
+      try {
+        int port = Integer.parseInt(args[indexOfArg + 1]);
+        if (port < 0 || port > 65535) return 80;
+        return port;
+      } catch (NumberFormatException e) {
+        return 80;
+      }
+    }
+    return 80;
   }
 
   private static String setRootDir(String[] args) {

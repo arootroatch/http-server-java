@@ -13,6 +13,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class GuessTest {
 
+  @AfterEach
+  void teardown() {
+    GameSession.clearAll();
+  }
+
   @Test
   void startPage() {
     HttpRequest request = new HttpRequest("GET", "/guess", "", Map.of(), new byte[0]);
@@ -44,7 +49,7 @@ public class GuessTest {
     String response = out.toString();
     assertTrue(response.contains("Set-Cookie: session="));
     assertTrue(response.contains("HttpOnly"));
-    assertTrue(response.contains("Set-Cookie: tries-left=7"));
+    assertFalse(response.contains("Set-Cookie: tries-left="));
   }
 
   @Test
@@ -52,7 +57,7 @@ public class GuessTest {
     String sessionId = GameSession.createSession(50);
     byte[] body = "guess=50".getBytes();
     HttpRequest request = new HttpRequest("POST", "/guess", "",
-        Map.of("Cookie", "session=" + sessionId + "; tries-left=7",
+        Map.of("Cookie", "session=" + sessionId,
             "Content-Length", String.valueOf(body.length)), body);
     ConnectionData connData = new ConnectionData(request, "testroot");
     ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -64,11 +69,11 @@ public class GuessTest {
   }
 
   @Test
-  void decrementsTriesLeftCookie() {
+  void decrementsTriesLeft() {
     String sessionId = GameSession.createSession(5);
     byte[] body = "guess=9".getBytes();
     HttpRequest request = new HttpRequest("POST", "/guess", "",
-        Map.of("Cookie", "session=" + sessionId + "; tries-left=7",
+        Map.of("Cookie", "session=" + sessionId,
             "Content-Length", String.valueOf(body.length)), body);
     ConnectionData connData = new ConnectionData(request, "testroot");
     ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -76,8 +81,9 @@ public class GuessTest {
     new Guess().serve(connData, out);
 
     String response = out.toString();
-    assertTrue(response.contains("Set-Cookie: tries-left=6"));
+    assertTrue(response.contains("6 tries left"));
     assertFalse(response.contains("Set-Cookie: session="));
+    assertFalse(response.contains("Set-Cookie: tries-left="));
   }
 
   @Test
@@ -85,7 +91,7 @@ public class GuessTest {
     String sessionId = GameSession.createSession(5);
     byte[] body = "guess=105".getBytes();
     HttpRequest request = new HttpRequest("POST", "/guess", "",
-        Map.of("Cookie", "session=" + sessionId + "; tries-left=7",
+        Map.of("Cookie", "session=" + sessionId,
             "Content-Length", String.valueOf(body.length)), body);
     ConnectionData connData = new ConnectionData(request, "testroot");
     ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -94,7 +100,7 @@ public class GuessTest {
 
     String response = out.toString();
     assertTrue(response.contains("<p>Too high!</p>"));
-    assertTrue(response.contains("Set-Cookie: tries-left=6"));
+    assertTrue(response.contains("6 tries left"));
     assertFalse(response.contains("Set-Cookie: session="));
   }
 
@@ -103,7 +109,7 @@ public class GuessTest {
     String sessionId = GameSession.createSession(5);
     byte[] body = "guess=-1".getBytes();
     HttpRequest request = new HttpRequest("POST", "/guess", "",
-        Map.of("Cookie", "session=" + sessionId + "; tries-left=7",
+        Map.of("Cookie", "session=" + sessionId,
             "Content-Length", String.valueOf(body.length)), body);
     ConnectionData connData = new ConnectionData(request, "testroot");
     ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -112,7 +118,7 @@ public class GuessTest {
 
     String response = out.toString();
     assertTrue(response.contains("<p>Too low!</p>"));
-    assertTrue(response.contains("Set-Cookie: tries-left=6"));
+    assertTrue(response.contains("6 tries left"));
     assertFalse(response.contains("Set-Cookie: session="));
   }
 
@@ -121,7 +127,7 @@ public class GuessTest {
     String sessionId = GameSession.createSession(50);
     byte[] body = "guess=50".getBytes();
     HttpRequest request = new HttpRequest("POST", "/guess", "",
-        Map.of("Cookie", "session=" + sessionId + "; tries-left=7",
+        Map.of("Cookie", "session=" + sessionId,
             "Content-Length", String.valueOf(body.length)), body);
     ConnectionData connData = new ConnectionData(request, "testroot");
     ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -131,8 +137,25 @@ public class GuessTest {
     String response = out.toString();
     assertTrue(response.contains("<p>That's it! You win!</p>"));
     assertTrue(response.contains("<p>The number is 50.</p>"));
-    assertTrue(response.contains("Set-Cookie: tries-left=0"));
     assertFalse(response.contains("Set-Cookie: session="));
     assertFalse(response.contains("<button id=\"submit\">Submit</button>"));
+    assertNull(GameSession.getNumber(sessionId));
+  }
+
+  @Test
+  void nonNumericGuess() {
+    String sessionId = GameSession.createSession(50);
+    byte[] body = "guess=abc".getBytes();
+    HttpRequest request = new HttpRequest("POST", "/guess", "",
+        Map.of("Cookie", "session=" + sessionId,
+            "Content-Length", String.valueOf(body.length)), body);
+    ConnectionData connData = new ConnectionData(request, "testroot");
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+    new Guess().serve(connData, out);
+
+    String response = out.toString();
+    assertTrue(response.contains("200 OK"));
+    assertTrue(response.contains("7 tries left"));
   }
 }

@@ -7,8 +7,9 @@ import myserver.routes.Listing;
 import org.junit.jupiter.api.*;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -91,7 +92,7 @@ public class FilesTest {
     new myserver.routes.StaticFile().serve(connData, out);
 
     String response = out.toString();
-    String file = new String(new FileInputStream("testroot/index.html").readAllBytes());
+    String file = Files.readString(Path.of("testroot/index.html"));
     assertTrue(response.contains(file));
     assertTrue(response.contains("Content-Type: text/html"));
   }
@@ -120,6 +121,12 @@ public class FilesTest {
     String response = out.toString();
     assertTrue(response.contains("Content-Type: image/png"));
     assertTrue(response.contains("200 OK"));
+  }
+
+  @Test
+  void listingPathTraversal() {
+    String response = serveAndGetBody("GET", "/listing/../../etc", "testroot", new Listing());
+    assertTrue(response.contains("404 Not Found"));
   }
 
   @Test

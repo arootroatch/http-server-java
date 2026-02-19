@@ -6,8 +6,9 @@ import myserver.routes.Form;
 import org.junit.jupiter.api.*;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -70,9 +71,7 @@ public class FormsTest {
 
   @Test
   void post() throws IOException {
-    FileInputStream file = new FileInputStream("testroot/img/autobot.jpg");
-    byte[] fileBytes = file.readAllBytes();
-    file.close();
+    byte[] fileBytes = Files.readAllBytes(Path.of("testroot/img/autobot.jpg"));
 
     ByteArrayOutputStream bodyBuilder = new ByteArrayOutputStream();
     bodyBuilder.write("------WebKitFormBoundaryz3skuKJCdTzwsajI\r\n".getBytes());
@@ -96,5 +95,46 @@ public class FormsTest {
     assertTrue(response.contains("<li>content type: image/jpeg</li>"));
     assertTrue(response.contains("<li>file size: " + fileBytes.length + "</li>"));
     assertTrue(response.endsWith("</html>"));
+  }
+
+  @Test
+  void formQueryParamXSS() {
+    HttpRequest request = new HttpRequest("GET", "/form", "x=<script>alert(1)</script>", Map.of(), new byte[0]);
+    ConnectionData connData = new ConnectionData(request, "testroot");
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+    new Form().serve(connData, out);
+
+    String response = out.toString();
+    assertTrue(response.contains("&lt;script&gt;"));
+    assertFalse(response.contains("<script>"));
+  }
+
+  @Test
+  void postMalformedMultipart() {
+    byte[] body = "garbage data not a valid multipart body".getBytes();
+    HttpRequest request = new HttpRequest("POST", "/form", "",
+        Map.of("Content-Length", String.valueOf(body.length)), body);
+    ConnectionData connData = new ConnectionData(request, "testroot");
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+    new Form().serve(connData, out);
+
+    String response = out.toString();
+    assertTrue(response.contains("200 OK") || response.contains("Invalid upload"));
+  }
+
+  @Test
+  void postEmptyBody() {
+    byte[] body = new byte[0];
+    HttpRequest request = new HttpRequest("POST", "/form", "",
+        Map.of("Content-Length", "0"), body);
+    ConnectionData connData = new ConnectionData(request, "testroot");
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+    new Form().serve(connData, out);
+
+    String response = out.toString();
+    assertTrue(response.contains("200 OK") || response.contains("Invalid upload"));
   }
 }

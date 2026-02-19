@@ -26,7 +26,11 @@ public class Guess implements Route {
       String body = request.bodyAsString().trim();
       String[] parts = body.split("=", 2);
       if (parts.length == 2 && parts[0].equals("guess")) {
-        guessReceived = Integer.parseInt(parts[1].trim());
+        try {
+          guessReceived = Integer.parseInt(parts[1].trim());
+        } catch (NumberFormatException e) {
+          guessReceived = null;
+        }
       }
     }
 
@@ -40,12 +44,18 @@ public class Guess implements Route {
 
     int triesLeft;
     if (isNewGame) {
-      triesLeft = 7;
+      triesLeft = GameSession.getTriesLeft(sessionId);
     } else if (guessReceived != null && guessReceived == numberToGuess) {
       triesLeft = 0;
+      GameSession.removeSession(sessionId);
+    } else if (guessReceived != null) {
+      GameSession.decrementTries(sessionId);
+      triesLeft = GameSession.getTriesLeft(sessionId);
+      if (triesLeft == 0) {
+        GameSession.removeSession(sessionId);
+      }
     } else {
-      String triesCookie = request.cookieValue("tries-left");
-      triesLeft = triesCookie.isEmpty() ? 7 : Integer.parseInt(triesCookie) - 1;
+      triesLeft = GameSession.getTriesLeft(sessionId);
     }
 
     String html = renderGuessHTML(guessReceived, numberToGuess, triesLeft);
@@ -54,7 +64,6 @@ public class Guess implements Route {
     if (isNewGame) {
       extraHeaders.add("Set-Cookie: session=" + sessionId + "; HttpOnly");
     }
-    extraHeaders.add("Set-Cookie: tries-left=" + triesLeft);
 
     sendString(html, "html", outputStream, extraHeaders);
   }

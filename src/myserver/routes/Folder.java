@@ -27,19 +27,21 @@ public class Folder implements Route {
     } else if (contents.length == 0) {
       send404(outputStream);
     } else {
-      sendString(renderContentsAsHTML(path, contents), "html", outputStream);
+      sendString(renderContentsAsHTML(path, rootDir, contents), "html", outputStream);
     }
   }
 
-  private String renderContentsAsHTML(String dir, String[] contents) {
+  private String renderContentsAsHTML(String dir, String rootDir, String[] contents) {
     StringBuilder html = new StringBuilder();
     html.append("<ul>");
     for (String item : contents) {
+      String safeItem = Utils.escapeHtml(item);
+      String safeDir = Utils.escapeHtml(dir);
       String li;
-      if (item.contains(".")) {
-        li = String.format("<li><a href=\"%s/%s\">%s</a></li>", dir, item, item);
+      if (new java.io.File(rootDir + dir + "/" + item).isFile()) {
+        li = String.format("<li><a href=\"%s/%s\">%s</a></li>", safeDir, safeItem, safeItem);
       } else {
-        li = String.format("<li><a href=\"/%s/%s\">%s</a></li>", dir, item, item);
+        li = String.format("<li><a href=\"/%s/%s\">%s</a></li>", safeDir, safeItem, safeItem);
       }
       html.append(li);
     }

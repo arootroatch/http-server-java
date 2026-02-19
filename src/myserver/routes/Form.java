@@ -60,8 +60,8 @@ public class Form implements Route {
     StringBuilder html = new StringBuilder();
     html.append("<ul>");
     for (String s : params) {
-      String name = s.split("=")[0];
-      String value = s.split("=")[1];
+      String name = Utils.escapeHtml(s.split("=")[0]);
+      String value = Utils.escapeHtml(s.split("=")[1]);
       String li = String.format("<li>%s: %s</li>", name, value);
       html.append(li);
     }
@@ -72,13 +72,14 @@ public class Form implements Route {
   private String postRequestHTML(HttpRequest request) {
     byte[] body = request.body();
     String metadata = extractMetadata(body);
+    if (metadata.isEmpty()) return "<p>Invalid upload</p>";
     String fileName = getFileName(metadata);
     String contentType = getContentType(metadata);
     int fileSize = getFileSize(body);
 
     return "<ul>" +
-        "<li>file name: " + fileName + "</li>" +
-        "<li>content type: " + contentType + "</li>" +
+        "<li>file name: " + Utils.escapeHtml(fileName) + "</li>" +
+        "<li>content type: " + Utils.escapeHtml(contentType) + "</li>" +
         "<li>file size: " + fileSize + "</li>" +
         "</ul>";
   }
@@ -90,13 +91,21 @@ public class Form implements Route {
   }
 
   private String getFileName(String metadata) {
-    String[] lines = metadata.split("\r\n");
-    return lines[1].split(";")[2].split("=")[1].split("\"")[1];
+    try {
+      String[] lines = metadata.split("\r\n");
+      return lines[1].split(";")[2].split("=")[1].split("\"")[1];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      return "(unknown)";
+    }
   }
 
   private String getContentType(String metadata) {
-    String[] lines = metadata.split("\r\n");
-    return lines[2].split(": ")[1];
+    try {
+      String[] lines = metadata.split("\r\n");
+      return lines[2].split(": ")[1];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      return "(unknown)";
+    }
   }
 
   private int getFileSize(byte[] body) {
