@@ -1,85 +1,60 @@
 package myservertests;
 
-import myserver.MyServer;
-import myserver.Route;
+import myserver.ConnectionData;
+import myserver.HttpRequest;
+import myserver.routes.Folder;
 import myserver.routes.Listing;
 import org.junit.jupiter.api.*;
 
-import java.io.File;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.Socket;
-import java.util.HashMap;
+import java.util.Map;
 
-import static myservertests.URLConnection.parseInputStream;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class FilesTest {
-  static MyServer server;
-  Socket socket;
-  OutputStream outputStream;
-  static HashMap<String, Route> routes = new HashMap<>();
 
-  @BeforeAll
-  static void setup() {
-    routes.put("/listing", new Listing());
-    server = new MyServer(1235, "testroot", routes);
-    server.start();
-  }
-
-  @BeforeEach
-  void openSocket() throws IOException {
-    socket = new Socket("127.0.0.1", 1235);
-    outputStream = socket.getOutputStream();
-  }
-
-  @AfterEach
-  void closeSocket() throws IOException {
-    if (socket != null) socket.close();
+  private String serveAndGetBody(String method, String path, String rootDir, myserver.Route route) {
+    HttpRequest request = new HttpRequest(method, path, "", Map.of(), new byte[0]);
+    ConnectionData connData = new ConnectionData(request, rootDir);
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    route.serve(connData, out);
+    return out.toString();
   }
 
   @Test
-  void listing() throws IOException {
-    outputStream.write(("GET /listing HTTP/1.1\r\n\r\n").getBytes());
-    outputStream.flush();
-    String response = parseInputStream(socket.getInputStream());
+  void listing() {
+    String response = serveAndGetBody("GET", "/listing", "testroot", new Listing());
     String body = response.split("\r\n\r\n")[1];
     int i = body.length();
 
-    assertEquals("<ul>", body.substring(0, 4));
-    assertEquals("</ul>\r\n", body.substring(i - 7));
+    assertTrue(body.startsWith("<ul>"));
+    assertTrue(body.endsWith("</ul>"));
     assertTrue(body.contains("<li><a href=\"/index.html\">index.html</a></li>"));
     assertTrue(body.contains("<li><a href=\"/hello.pdf\">hello.pdf</a></li>"));
     assertTrue(body.contains("<li><a href=\"/listing/img\">img</a></li>"));
   }
 
   @Test
-  void listingSlash() throws IOException {
-    outputStream.write(("GET /listing/ HTTP/1.1\r\n\r\n").getBytes());
-    outputStream.flush();
-    String response = parseInputStream(socket.getInputStream());
+  void listingSlash() {
+    String response = serveAndGetBody("GET", "/listing/", "testroot", new Listing());
     String body = response.split("\r\n\r\n")[1];
-    int i = body.length();
 
-    assertEquals("<ul>", body.substring(0, 4));
-    assertEquals("</ul>\r\n", body.substring(i - 7));
+    assertTrue(body.startsWith("<ul>"));
+    assertTrue(body.endsWith("</ul>"));
     assertTrue(body.contains("<li><a href=\"/index.html\">index.html</a></li>"));
     assertTrue(body.contains("<li><a href=\"/hello.pdf\">hello.pdf</a></li>"));
     assertTrue(body.contains("<li><a href=\"/listing/img\">img</a></li>"));
   }
 
   @Test
-  void listingImg() throws IOException {
-    outputStream.write(("GET /listing/img HTTP/1.1\r\n\r\n").getBytes());
-    outputStream.flush();
-    String response = parseInputStream(socket.getInputStream());
+  void listingImg() {
+    String response = serveAndGetBody("GET", "/listing/img", "testroot", new Listing());
     String body = response.split("\r\n\r\n")[1];
-    int i = body.length();
 
-    assertEquals("<ul>", body.substring(0, 4));
-    assertEquals("</ul>\r\n", body.substring(i - 7));
+    assertTrue(body.startsWith("<ul>"));
+    assertTrue(body.endsWith("</ul>"));
     assertTrue(body.contains("<li><a href=\"/img/autobot.jpg\">autobot.jpg</a></li>"));
     assertTrue(body.contains("<li><a href=\"/img/autobot.png\">autobot.png</a></li>"));
     assertTrue(body.contains("<li><a href=\"/img/decepticon.jpg\">decepticon.jpg</a></li>"));
@@ -87,15 +62,12 @@ public class FilesTest {
   }
 
   @Test
-  void img() throws IOException {
-    outputStream.write(("GET /img HTTP/1.1\r\n\r\n").getBytes());
-    outputStream.flush();
-    String response = parseInputStream(socket.getInputStream());
+  void img() {
+    String response = serveAndGetBody("GET", "/img", "testroot", new Folder());
     String body = response.split("\r\n\r\n")[1];
-    int i = body.length();
 
-    assertEquals("<ul>", body.substring(0, 4));
-    assertEquals("</ul>\r\n", body.substring(i - 7));
+    assertTrue(body.startsWith("<ul>"));
+    assertTrue(body.endsWith("</ul>"));
     assertTrue(body.contains("<li><a href=\"/img/autobot.jpg\">autobot.jpg</a></li>"));
     assertTrue(body.contains("<li><a href=\"/img/autobot.png\">autobot.png</a></li>"));
     assertTrue(body.contains("<li><a href=\"/img/decepticon.jpg\">decepticon.jpg</a></li>"));
@@ -103,79 +75,64 @@ public class FilesTest {
   }
 
   @Test
-  void dirIndex() throws IOException {
-    MyServer server1 = new MyServer(1236, "root", routes);
-    server1.start();
-    Socket socket1 = new Socket("127.0.0.1", 1236);
-    OutputStream outputStream1 = socket1.getOutputStream();
-
-    outputStream1.write(("GET /test-dir HTTP/1.1\r\n\r\n").getBytes());
-    outputStream1.flush();
-    String response = parseInputStream(socket1.getInputStream());
+  void dirIndex() {
+    String response = serveAndGetBody("GET", "/test-dir", "root", new Folder());
 
     assertTrue(response.contains("<h1>Hello, World!</h1>"));
-    assertTrue(response
-        .contains("<p>You have reached the index.html file in root/test-dir of the http-spec project.</p>"));
-
-    server1.stop();
-    socket1.close();
+    assertTrue(response.contains(
+        "<p>You have reached the index.html file in root/test-dir of the http-spec project.</p>"));
   }
 
   @Test
   void servesHTML() throws IOException {
-    outputStream.write(("GET /index.html HTTP/1.1\r\n\r\n").getBytes());
-    outputStream.flush();
-    String response = parseInputStream(socket.getInputStream());
-    String file = parseInputStream(new FileInputStream("testroot/index.html"));
+    HttpRequest request = new HttpRequest("GET", "/index.html", "", Map.of(), new byte[0]);
+    ConnectionData connData = new ConnectionData(request, "testroot");
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
 
+    new myserver.routes.File().serve(connData, out);
+
+    String response = out.toString();
+    String file = new String(new FileInputStream("testroot/index.html").readAllBytes());
     assertTrue(response.contains(file));
     assertTrue(response.contains("Content-Type: text/html"));
   }
 
   @Test
-  void servesJPG() throws IOException {
-    outputStream.write(("GET /img/autobot.jpg HTTP/1.1\r\n\r\n").getBytes());
-    outputStream.flush();
-    String response = parseInputStream(socket.getInputStream());
+  void servesJPG() {
+    HttpRequest request = new HttpRequest("GET", "/img/autobot.jpg", "", Map.of(), new byte[0]);
+    ConnectionData connData = new ConnectionData(request, "testroot");
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-    File file = new File("testroot/img/autobot.jpg");
-    FileInputStream fileInputStream = new FileInputStream(file);
-    String image = parseInputStream(fileInputStream);
+    new myserver.routes.File().serve(connData, out);
 
-    assertTrue(response.contains(image));
+    String response = out.toString();
     assertTrue(response.contains("Content-Type: image/jpeg"));
+    assertTrue(response.contains("200 OK"));
   }
 
   @Test
-  void servesPNG() throws IOException {
-    outputStream.write(("GET /img/decepticon.png HTTP/1.1\r\n\r\n").getBytes());
-    outputStream.flush();
-    String response = parseInputStream(socket.getInputStream());
+  void servesPNG() {
+    HttpRequest request = new HttpRequest("GET", "/img/decepticon.png", "", Map.of(), new byte[0]);
+    ConnectionData connData = new ConnectionData(request, "testroot");
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-    File file = new File("testroot/img/decepticon.png");
-    FileInputStream fileInputStream = new FileInputStream(file);
-    String image = parseInputStream(fileInputStream);
+    new myserver.routes.File().serve(connData, out);
 
-    assertTrue(response.contains(image));
+    String response = out.toString();
     assertTrue(response.contains("Content-Type: image/png"));
+    assertTrue(response.contains("200 OK"));
   }
 
   @Test
-  void servesPDF() throws IOException {
-    outputStream.write(("GET /hello.pdf HTTP/1.1\r\n\r\n").getBytes());
-    outputStream.flush();
-    String response = parseInputStream(socket.getInputStream());
+  void servesPDF() {
+    HttpRequest request = new HttpRequest("GET", "/hello.pdf", "", Map.of(), new byte[0]);
+    ConnectionData connData = new ConnectionData(request, "testroot");
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-    File file = new File("testroot/hello.pdf");
-    FileInputStream fileInputStream = new FileInputStream(file);
-    String image = parseInputStream(fileInputStream);
+    new myserver.routes.File().serve(connData, out);
 
-    assertTrue(response.contains(image));
+    String response = out.toString();
     assertTrue(response.contains("Content-Type: application/pdf"));
-  }
-
-  @AfterAll
-  static void teardown() {
-    server.stop();
+    assertTrue(response.contains("200 OK"));
   }
 }

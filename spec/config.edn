@@ -1,5 +1,5 @@
 {
- :cmd "./server.sh"
+ :cmd "java -cp target/classes myserver.Main"
  :name "My MacBook Pro"
  :startup-millis 3000
  :debug? false

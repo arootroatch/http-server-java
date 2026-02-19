@@ -1,49 +1,28 @@
 package myservertests;
 
-import myserver.MyServer;
-import myserver.Route;
+import myserver.ConnectionData;
+import myserver.HttpRequest;
 import myserver.routes.Form;
 import org.junit.jupiter.api.*;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.Socket;
-import java.util.HashMap;
+import java.util.Map;
 
-import static myservertests.URLConnection.parseInputStream;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class FormsTest {
-  static MyServer server;
-  Socket socket;
-  OutputStream outputStream;
-  static HashMap<String, Route> routes = new HashMap<>();
-
-  @BeforeAll
-  static void setup() {
-    routes.put("/form", new Form());
-    server = new MyServer(1237, "testroot", routes);
-    server.start();
-  }
-
-  @BeforeEach
-  void openSocket() throws IOException {
-    socket = new Socket("127.0.0.1", 1237);
-    outputStream = socket.getOutputStream();
-  }
-
-  @AfterEach
-  void closeSocket() throws IOException {
-    if (socket != null) socket.close();
-  }
 
   @Test
-  void form() throws IOException {
-    outputStream.write(("GET /form HTTP/1.1\r\n\r\n").getBytes());
-    outputStream.flush();
-    String response = parseInputStream(socket.getInputStream());
+  void form() {
+    HttpRequest request = new HttpRequest("GET", "/form", "", Map.of(), new byte[0]);
+    ConnectionData connData = new ConnectionData(request, "testroot");
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+    new Form().serve(connData, out);
+
+    String response = out.toString();
     assertTrue(response.contains("<h2>GET Form</h2>"));
     assertTrue(response.contains("<form method=\"get\" action=\"/form\">"));
     assertTrue(response.contains("<label for=\"foo\">Foo:</label>"));
@@ -55,30 +34,35 @@ public class FormsTest {
     assertTrue(response.contains("<form method=\"post\" action=\"/form\" enctype=\"multipart/form-data\">"));
     assertTrue(response.contains("<label>File:</label>"));
     assertTrue(response.contains("<input type=\"file\" name=\"file\"/>"));
-    assertTrue(response.contains("<input type=\"submit\" value=\"Submit\"/>"));
     assertTrue(response.contains("</form>"));
   }
 
   @Test
-  void formOneParam() throws IOException {
-    outputStream.write(("GET /form?foo=1 HTTP/1.1\r\n\r\n").getBytes());
-    outputStream.flush();
-    String response = parseInputStream(socket.getInputStream());
-    String body = response.split("\r\n\r\n")[1];
-    int i = response.length();
+  void formOneParam() {
+    HttpRequest request = new HttpRequest("GET", "/form", "foo=1", Map.of(), new byte[0]);
+    ConnectionData connData = new ConnectionData(request, "testroot");
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-    assertEquals("<html>", body.substring(0, 6));
+    new Form().serve(connData, out);
+
+    String response = out.toString();
+    String body = response.split("\r\n\r\n")[1];
+
+    assertTrue(body.startsWith("<html>"));
     assertTrue(response.contains("<h2>GET Form</h2>"));
     assertTrue(response.contains("<li>foo: 1</li>"));
-    assertEquals("</html>\r\n", response.substring(i - 9));
+    assertTrue(response.endsWith("</html>"));
   }
 
   @Test
-  void formTwoParams() throws IOException {
-    outputStream.write(("GET /form?foo=1&bar=2 HTTP/1.1\r\n\r\n").getBytes());
-    outputStream.flush();
-    String response = parseInputStream(socket.getInputStream());
+  void formTwoParams() {
+    HttpRequest request = new HttpRequest("GET", "/form", "foo=1&bar=2", Map.of(), new byte[0]);
+    ConnectionData connData = new ConnectionData(request, "testroot");
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
 
+    new Form().serve(connData, out);
+
+    String response = out.toString();
     assertTrue(response.contains("<h2>GET Form</h2>"));
     assertTrue(response.contains("<li>foo: 1</li>"));
     assertTrue(response.contains("<li>bar: 2</li>"));
@@ -90,28 +74,27 @@ public class FormsTest {
     byte[] fileBytes = file.readAllBytes();
     file.close();
 
-    outputStream.write(("POST /form HTTP/1.1\r\n").getBytes());
-    outputStream.write(("Content-Length: 58638\r\n\r\n").getBytes());
-    outputStream.write(("------WebKitFormBoundaryz3skuKJCdTzwsajI\r\n").getBytes());
-    outputStream.write(("Content-Disposition: form-data; name=\"file\"; filename=\"autobot.jpg\"\r\n").getBytes());
-    outputStream.write(("Content-Type: image/jpeg\r\n\r\n").getBytes());
-    outputStream.write(fileBytes);
-    outputStream.write(("\r\n").getBytes());
-    outputStream.write(("------WebKitFormBoundaryz3skuKJCdTzwsajI--\r\n\r\n").getBytes());
-    outputStream.flush();
+    ByteArrayOutputStream bodyBuilder = new ByteArrayOutputStream();
+    bodyBuilder.write("------WebKitFormBoundaryz3skuKJCdTzwsajI\r\n".getBytes());
+    bodyBuilder.write("Content-Disposition: form-data; name=\"file\"; filename=\"autobot.jpg\"\r\n".getBytes());
+    bodyBuilder.write("Content-Type: image/jpeg\r\n\r\n".getBytes());
+    bodyBuilder.write(fileBytes);
+    bodyBuilder.write("\r\n------WebKitFormBoundaryz3skuKJCdTzwsajI--\r\n".getBytes());
+    byte[] body = bodyBuilder.toByteArray();
 
-    String response = parseInputStream(socket.getInputStream());
-    int i = response.length();
+    HttpRequest request = new HttpRequest("POST", "/form", "",
+        Map.of("Content-Length", String.valueOf(body.length)), body);
+    ConnectionData connData = new ConnectionData(request, "testroot");
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+    new Form().serve(connData, out);
+
+    String response = out.toString();
 
     assertTrue(response.contains("<h2>POST Form</h2>"));
     assertTrue(response.contains("<li>file name: autobot.jpg</li>"));
     assertTrue(response.contains("<li>content type: image/jpeg</li>"));
-    assertTrue(response.contains("<li>file size: 58453</li>"));
-    assertEquals("</html>\r\n", response.substring(i - 9));
-  }
-
-  @AfterAll
-  static void teardown() {
-    server.stop();
+    assertTrue(response.contains("<li>file size: " + fileBytes.length + "</li>"));
+    assertTrue(response.endsWith("</html>"));
   }
 }

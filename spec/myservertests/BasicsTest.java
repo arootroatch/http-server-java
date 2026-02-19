@@ -1,92 +1,72 @@
 package myservertests;
 
-import myserver.MyServer;
-import myserver.Route;
+import myserver.*;
+import myserver.routes.Folder;
 import org.junit.jupiter.api.*;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
+import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
+import java.util.Map;
 
-import static myservertests.URLConnection.parseInputStream;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class BasicsTest {
-  static MyServer server;
-  Socket socket;
-  OutputStream outputStream;
-  static HashMap<String, Route> routes = new HashMap<>();
-
-  @BeforeAll
-  static void setup() {
-    server = new MyServer(1234, "testroot", routes);
-    server.start();
-  }
-
-  @BeforeEach
-  void openSocket() throws IOException {
-    socket = new Socket("127.0.0.1", 1234);
-    outputStream = socket.getOutputStream();
-  }
-
-  @AfterEach
-  void closeSocket() throws IOException {
-    if (socket != null) socket.close();
-  }
 
   @Test
-  void start() {
-    server.stop();
-    assertFalse(server.isRunning());
-    assertNull(server.getThread());
+  void startAndStop() {
+    MyServer server = new MyServer(0, "testroot", new HashMap<>());
     server.start();
     assertTrue(server.isRunning());
     assertNotNull(server.getThread());
     assertTrue(server.getThread().isAlive());
+
+    server.stop();
+    assertFalse(server.isRunning());
+    assertNull(server.getThread());
   }
 
   @Test
-  void servesIndex() throws IOException {
-    outputStream.write(("GET / HTTP/1.1\r\n\r\n").getBytes());
-    outputStream.flush();
-    InputStream inputStream = socket.getInputStream();
+  void servesIndex() {
+    HttpRequest request = new HttpRequest("GET", "/", "", Map.of(), new byte[0]);
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    RequestDispatcher.dispatch(request, "testroot", Map.of(), out);
 
-    String response = parseInputStream(inputStream);
-    assertTrue(response.contains("<h1>Hello, World!</h1>"));
+    String response = out.toString();
     assertTrue(response.contains("200 OK"));
-  }
-
-  @Test
-  void servesIndexHTML() throws IOException {
-    outputStream.write(("GET /index.html HTTP/1.1\r\n\r\n").getBytes());
-    outputStream.flush();
-    String response = parseInputStream(socket.getInputStream());
-
     assertTrue(response.contains("<h1>Hello, World!</h1>"));
-    assertTrue(response.contains("200 OK"));
   }
 
   @Test
-  void status404() throws IOException {
-    outputStream.write(("GET /blah HTTP/1.1\r\n\r\n").getBytes());
-    outputStream.flush();
-    String response = parseInputStream(socket.getInputStream());
+  void servesIndexHTML() {
+    HttpRequest request = new HttpRequest("GET", "/index.html", "", Map.of(), new byte[0]);
+    ConnectionData connData = new ConnectionData(request, "testroot");
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
 
+    new myserver.routes.File().serve(connData, out);
+
+    String response = out.toString();
+    assertTrue(response.contains("200 OK"));
+    assertTrue(response.contains("Content-Type: text/html"));
+    assertTrue(response.contains("<h1>Hello, World!</h1>"));
+  }
+
+  @Test
+  void status404() {
+    HttpRequest request = new HttpRequest("GET", "/blah", "", Map.of(), new byte[0]);
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    RequestDispatcher.dispatch(request, "testroot", Map.of(), out);
+
+    String response = out.toString();
     assertTrue(response.contains("404 Not Found"));
   }
 
   @Test
-  void serverHeader() throws IOException {
-    outputStream.write(("GET / HTTP/1.1\r\n\r\n").getBytes());
-    outputStream.flush();
-    String response = parseInputStream(socket.getInputStream());
-    assertTrue(response.contains("Server: My MacBook Pro"));
-  }
+  void serverHeader() {
+    HttpRequest request = new HttpRequest("GET", "/", "", Map.of(), new byte[0]);
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    RequestDispatcher.dispatch(request, "testroot", Map.of(), out);
 
-  @AfterAll
-  static void teardown() {
-    server.stop();
+    String response = out.toString();
+    assertTrue(response.contains("Server: My MacBook Pro"));
   }
 }
