@@ -32,13 +32,14 @@ public class MyServer {
   }
 
   public void start() {
-    this.running = true;
     this.executor = Executors.newFixedThreadPool(20);
     try {
       this.serverSocket = new ServerSocket(this.port);
     } catch (IOException e) {
+      executor.shutdown();
       throw new RuntimeException(e);
     }
+    this.running = true;
     printConfig(port, rootDir);
     this.thread = new Thread(this::serve);
     thread.start();

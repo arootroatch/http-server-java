@@ -30,6 +30,19 @@ public class BasicsTest {
   }
 
   @Test
+  void startFailsOnInvalidPort() {
+    PrintStream originalOut = System.out;
+    System.setOut(new PrintStream(new ByteArrayOutputStream()));
+    MyServer server = new MyServer(-1, "testroot", new HashMap<>());
+    try {
+      assertThrows(RuntimeException.class, () -> server.start());
+      assertFalse(server.isRunning());
+    } finally {
+      System.setOut(originalOut);
+    }
+  }
+
+  @Test
   void servesIndex() {
     HttpRequest request = new HttpRequest("GET", "/", "", Map.of(), new byte[0]);
     ByteArrayOutputStream out = new ByteArrayOutputStream();
