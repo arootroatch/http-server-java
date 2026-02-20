@@ -21,6 +21,7 @@ public class PingTest {
     String response = TestHelper.serve(new Ping(), TestHelper.get("/ping/abc"));
     assertTrue(response.contains("200 OK"));
     assertTrue(response.contains("<h2>Ping</h2>"));
+    TestHelper.assertNoLeakedErrors(response);
   }
 
   @Test
@@ -28,6 +29,7 @@ public class PingTest {
     String response = TestHelper.serve(new Ping(), TestHelper.get("/ping/-5"));
     assertTrue(response.contains("200 OK"));
     assertTrue(response.contains("<h2>Ping</h2>"));
+    TestHelper.assertNoLeakedErrors(response);
   }
 
 }

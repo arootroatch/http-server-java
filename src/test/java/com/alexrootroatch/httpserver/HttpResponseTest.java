@@ -17,6 +17,7 @@ public class HttpResponseTest {
     String response = out.toString();
     assertTrue(response.contains("404 Not Found"));
     assertTrue(response.contains("Content-Type: text/html"));
+    TestHelper.assertNoLeakedErrors(response);
   }
 
   @Test
@@ -36,6 +37,7 @@ public class HttpResponseTest {
     String response = out.toString();
     assertTrue(response.contains("500 Internal Server Error"));
     assertTrue(response.contains("Content-Type: text/html"));
+    TestHelper.assertNoLeakedErrors(response);
   }
 
   @Test
@@ -45,6 +47,7 @@ public class HttpResponseTest {
     String response = out.toString();
     assertTrue(response.contains("405 Method Not Allowed"));
     assertTrue(response.contains("Content-Type: text/html"));
+    TestHelper.assertNoLeakedErrors(response);
   }
 
   @Test

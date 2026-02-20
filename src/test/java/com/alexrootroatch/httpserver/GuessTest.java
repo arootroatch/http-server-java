@@ -113,5 +113,6 @@ public class GuessTest {
         TestHelper.postWithCookie("/guess", body, "session", sessionId));
     assertTrue(response.contains("200 OK"));
     assertTrue(response.contains("7 tries left"));
+    TestHelper.assertNoLeakedErrors(response);
   }
 }

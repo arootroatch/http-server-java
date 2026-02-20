@@ -27,6 +27,8 @@ public class FormsTest {
     assertTrue(response.contains("<label>File:</label>"));
     assertTrue(response.contains("<input type=\"file\" name=\"file\"/>"));
     assertTrue(response.contains("</form>"));
+    assertFalse(response.contains("Invalid upload"));
+    assertFalse(response.contains("404"));
   }
 
   @Test
@@ -82,11 +84,13 @@ public class FormsTest {
     byte[] body = "garbage data not a valid multipart body".getBytes();
     String response = TestHelper.serve(new Form(), TestHelper.post("/form", body));
     assertTrue(response.contains("200 OK") || response.contains("Invalid upload"));
+    TestHelper.assertNoLeakedErrors(response);
   }
 
   @Test
   void postEmptyBody() {
     String response = TestHelper.serve(new Form(), TestHelper.post("/form", new byte[0]));
     assertTrue(response.contains("200 OK") || response.contains("Invalid upload"));
+    TestHelper.assertNoLeakedErrors(response);
   }
 }

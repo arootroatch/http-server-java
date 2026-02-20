@@ -48,6 +48,8 @@ public class BasicsTest {
         TestHelper.get("/"));
     assertTrue(response.contains("200 OK"));
     assertTrue(response.contains("<h1>Hello, World!</h1>"));
+    assertFalse(response.contains("404"));
+    assertFalse(response.contains("500"));
   }
 
   @Test
@@ -66,6 +68,7 @@ public class BasicsTest {
         new RequestDispatcher(TestHelper.TESTROOT, Map.of()),
         TestHelper.get("/blah"));
     assertTrue(response.contains("404 Not Found"));
+    TestHelper.assertNoLeakedErrors(response);
   }
 
   @Test

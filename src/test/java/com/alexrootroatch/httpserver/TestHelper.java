@@ -3,6 +3,8 @@ package com.alexrootroatch.httpserver;
 import java.io.ByteArrayOutputStream;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 public class TestHelper {
   public static final String TESTROOT = "testroot";
 
@@ -50,5 +52,20 @@ public class TestHelper {
   public static String responseHeaders(String fullResponse) {
     String[] parts = fullResponse.split("\r\n\r\n", 2);
     return parts[0];
+  }
+
+  /**
+   * Asserts that a response contains no stack traces, exception class names,
+   * or Java error artifacts that would indicate a server error leaking to the client.
+   */
+  public static void assertNoLeakedErrors(String response) {
+    assertFalse(response.contains("Exception"), "Response contains exception text: " + truncate(response));
+    assertFalse(response.contains("at com."), "Response contains stack trace: " + truncate(response));
+    assertFalse(response.contains("at java."), "Response contains stack trace: " + truncate(response));
+    assertFalse(response.contains("NullPointer"), "Response contains NullPointerException: " + truncate(response));
+  }
+
+  private static String truncate(String s) {
+    return s.length() > 200 ? s.substring(0, 200) + "..." : s;
   }
 }
