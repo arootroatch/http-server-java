@@ -2,6 +2,7 @@ package com.alexrootroatch.httpserver.routes;
 
 import com.alexrootroatch.httpserver.ConnectionData;
 import com.alexrootroatch.httpserver.Route;
+import com.alexrootroatch.httpserver.routes.http.HtmlUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,8 +11,6 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.alexrootroatch.httpserver.routes.http.HtmlUtil;
 
 import static com.alexrootroatch.httpserver.routes.DirectoryContents.getContentsOfDir;
 import static com.alexrootroatch.httpserver.routes.DirectoryContents.renderAsHTML;
