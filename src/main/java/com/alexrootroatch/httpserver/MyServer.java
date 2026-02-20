@@ -8,12 +8,15 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static com.alexrootroatch.httpserver.Print.printConfig;
 import static com.alexrootroatch.httpserver.routes.HttpResponse.send500;
 import static com.alexrootroatch.httpserver.routes.HttpResponse.sendError;
 
 public class MyServer {
+  private static final Logger logger = Logger.getLogger(MyServer.class.getName());
   private ServerSocket serverSocket;
   private volatile boolean running = false;
   private Thread thread;
@@ -50,7 +53,7 @@ public class MyServer {
         executor.shutdownNow();
       }
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      logger.log(Level.SEVERE, "Error closing server socket", e);
     } catch (InterruptedException e) {
       executor.shutdownNow();
       Thread.currentThread().interrupt();
@@ -86,7 +89,7 @@ public class MyServer {
           send500(outputStream);
         }
       } catch (IOException e) {
-        // client socket failed to open or close; nothing to send
+        logger.log(Level.FINE, "Client socket error", e);
       }
     });
   }
@@ -98,8 +101,7 @@ public class MyServer {
       client.setSoTimeout(30_000);
     } catch (IOException e) {
       if (this.running) {
-        System.err.println("Socket error");
-        e.printStackTrace(System.err);
+        logger.log(Level.WARNING, "Socket accept error", e);
       }
     }
     return client;

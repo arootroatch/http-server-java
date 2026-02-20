@@ -5,8 +5,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public final class HttpResponse {
+  private static final Logger logger = Logger.getLogger(HttpResponse.class.getName());
+
   private HttpResponse() {
   }
 
@@ -17,7 +21,9 @@ public final class HttpResponse {
       outputStream.write("Server: My Server\r\n\r\n".getBytes(StandardCharsets.US_ASCII));
       outputStream.write(("<h1>Error " + code + ": " + reason + "</h1>").getBytes(StandardCharsets.UTF_8));
       outputStream.flush();
-    } catch (IOException e) { /* client disconnected */ }
+    } catch (IOException e) {
+      logger.log(Level.FINE, "Failed to send error response (client likely disconnected)", e);
+    }
   }
 
   public static void send404(OutputStream outputStream) {

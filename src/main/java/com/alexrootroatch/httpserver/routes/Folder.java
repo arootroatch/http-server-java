@@ -8,6 +8,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static com.alexrootroatch.httpserver.routes.DirectoryContents.getContentsOfDir;
 import static com.alexrootroatch.httpserver.routes.DirectoryContents.renderAsHTML;
@@ -16,6 +18,7 @@ import static com.alexrootroatch.httpserver.routes.HttpResponse.sendFile;
 import static com.alexrootroatch.httpserver.routes.HttpResponse.sendString;
 
 public class Folder implements Route {
+  private static final Logger logger = Logger.getLogger(Folder.class.getName());
 
   public void serve(ConnectionData connData, OutputStream outputStream) {
     String rootDir = connData.rootDir();
@@ -26,7 +29,8 @@ public class Folder implements Route {
       try (FileInputStream file = new FileInputStream(rootDir + path + "/index.html")) {
         sendFile(file, "html", outputStream);
       } catch (IOException e) {
-        throw new RuntimeException(e);
+        logger.log(Level.WARNING, "Failed to read index.html in " + rootDir + path, e);
+        send404(outputStream);
       }
     } else if (contents.length == 0) {
       send404(outputStream);
