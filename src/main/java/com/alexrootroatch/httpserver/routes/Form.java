@@ -4,14 +4,16 @@ import com.alexrootroatch.httpserver.ConnectionData;
 import com.alexrootroatch.httpserver.HttpRequest;
 import com.alexrootroatch.httpserver.Route;
 
+import com.alexrootroatch.httpserver.routes.http.HtmlUtil;
+
 import java.io.*;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.alexrootroatch.httpserver.routes.HttpResponse.send404;
-import static com.alexrootroatch.httpserver.routes.HttpResponse.sendString;
+import static com.alexrootroatch.httpserver.routes.http.HttpResponse.send404;
+import static com.alexrootroatch.httpserver.routes.http.HttpResponse.sendString;
 
 public class Form implements Route {
   private static final Pattern FILENAME_PATTERN = Pattern.compile("filename=\"([^\"]*)\"");

@@ -1,6 +1,6 @@
 package com.alexrootroatch.httpserver;
 
-import com.alexrootroatch.httpserver.routes.HtmlUtil;
+import com.alexrootroatch.httpserver.routes.http.HtmlUtil;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

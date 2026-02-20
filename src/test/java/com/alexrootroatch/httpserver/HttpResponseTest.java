@@ -1,6 +1,6 @@
 package com.alexrootroatch.httpserver;
 
-import com.alexrootroatch.httpserver.routes.HttpResponse;
+import com.alexrootroatch.httpserver.routes.http.HttpResponse;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;

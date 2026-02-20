@@ -11,11 +11,13 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.alexrootroatch.httpserver.routes.http.HtmlUtil;
+
 import static com.alexrootroatch.httpserver.routes.DirectoryContents.getContentsOfDir;
 import static com.alexrootroatch.httpserver.routes.DirectoryContents.renderAsHTML;
-import static com.alexrootroatch.httpserver.routes.HttpResponse.send404;
-import static com.alexrootroatch.httpserver.routes.HttpResponse.sendFile;
-import static com.alexrootroatch.httpserver.routes.HttpResponse.sendString;
+import static com.alexrootroatch.httpserver.routes.http.HttpResponse.send404;
+import static com.alexrootroatch.httpserver.routes.http.HttpResponse.sendFile;
+import static com.alexrootroatch.httpserver.routes.http.HttpResponse.sendString;
 
 public class Folder implements Route {
   private static final Logger logger = Logger.getLogger(Folder.class.getName());

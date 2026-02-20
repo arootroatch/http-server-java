@@ -1,5 +1,7 @@
 package com.alexrootroatch.httpserver.routes;
 
+import com.alexrootroatch.httpserver.routes.http.HtmlUtil;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.function.Function;

@@ -1,4 +1,4 @@
-package com.alexrootroatch.httpserver.routes;
+package com.alexrootroatch.httpserver.routes.http;
 
 import java.io.FileInputStream;
 import java.io.IOException;

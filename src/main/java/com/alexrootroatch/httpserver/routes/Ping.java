@@ -7,7 +7,7 @@ import java.io.OutputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import static com.alexrootroatch.httpserver.routes.HttpResponse.sendString;
+import static com.alexrootroatch.httpserver.routes.http.HttpResponse.sendString;
 
 public class Ping implements Route {
   private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");

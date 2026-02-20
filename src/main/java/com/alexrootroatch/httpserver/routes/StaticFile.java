@@ -8,8 +8,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import static com.alexrootroatch.httpserver.routes.HttpResponse.send404;
-import static com.alexrootroatch.httpserver.routes.HttpResponse.sendFile;
+import static com.alexrootroatch.httpserver.routes.http.HttpResponse.send404;
+import static com.alexrootroatch.httpserver.routes.http.HttpResponse.sendFile;
 
 public class StaticFile implements Route {
 

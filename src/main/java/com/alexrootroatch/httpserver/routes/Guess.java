@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static com.alexrootroatch.httpserver.routes.HttpResponse.sendString;
+import static com.alexrootroatch.httpserver.routes.http.HttpResponse.sendString;
 
 public class Guess implements Route {
   private final GameSession gameSession;

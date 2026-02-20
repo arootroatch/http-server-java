@@ -9,8 +9,8 @@ import java.io.OutputStream;
 import java.util.Map;
 import java.util.Set;
 
-import static com.alexrootroatch.httpserver.routes.HttpResponse.send404;
-import static com.alexrootroatch.httpserver.routes.HttpResponse.send405;
+import static com.alexrootroatch.httpserver.routes.http.HttpResponse.send404;
+import static com.alexrootroatch.httpserver.routes.http.HttpResponse.send405;
 
 public class RequestDispatcher {
   private final Route folderHandler = new Folder();

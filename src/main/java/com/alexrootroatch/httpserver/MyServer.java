@@ -12,8 +12,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.alexrootroatch.httpserver.Print.printConfig;
-import static com.alexrootroatch.httpserver.routes.HttpResponse.send500;
-import static com.alexrootroatch.httpserver.routes.HttpResponse.sendError;
+import static com.alexrootroatch.httpserver.routes.http.HttpResponse.send500;
+import static com.alexrootroatch.httpserver.routes.http.HttpResponse.sendError;
 
 public class MyServer {
   private static final Logger logger = Logger.getLogger(MyServer.class.getName());

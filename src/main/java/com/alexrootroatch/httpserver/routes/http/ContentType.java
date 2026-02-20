@@ -1,4 +1,4 @@
-package com.alexrootroatch.httpserver.routes;
+package com.alexrootroatch.httpserver.routes.http;
 
 public final class ContentType {
   private ContentType() {
