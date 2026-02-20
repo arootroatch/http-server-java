@@ -4,6 +4,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class GameSession {
+  static final int MAX_TRIES = 7;
   private static final long SESSION_TTL = 30 * 60 * 1000L;
   private final ConcurrentHashMap<String, SessionData> sessions = new ConcurrentHashMap<>();
 
@@ -12,7 +13,7 @@ public class GameSession {
   public String createSession(int number) {
     cleanExpired();
     String id = UUID.randomUUID().toString();
-    sessions.put(id, new SessionData(number, 7, System.currentTimeMillis()));
+    sessions.put(id, new SessionData(number, MAX_TRIES, System.currentTimeMillis()));
     return id;
   }
 

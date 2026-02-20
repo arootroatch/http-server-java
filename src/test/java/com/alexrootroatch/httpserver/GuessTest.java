@@ -144,6 +144,27 @@ public class GuessTest {
   }
 
   @Test
+  void sessionRemovedMidRequestStartsNewGame() {
+    String sessionId = gameSession.createSession(50);
+    // Simulate another thread removing the session between lookup and use
+    gameSession.removeSession(sessionId);
+
+    byte[] body = "guess=50".getBytes();
+    HttpRequest request = new HttpRequest("POST", "/guess", "",
+        Map.of("Cookie", "session=" + sessionId,
+            "Content-Length", String.valueOf(body.length)), body);
+    ConnectionData connData = new ConnectionData(request, "testroot");
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+    new Guess(gameSession).serve(connData, out);
+
+    String response = out.toString();
+    // Should start a new game, not crash or show stale data
+    assertTrue(response.contains("Set-Cookie: session="));
+    assertTrue(response.contains("7 tries left"));
+  }
+
+  @Test
   void nonNumericGuess() {
     String sessionId = gameSession.createSession(50);
     byte[] body = "guess=abc".getBytes();

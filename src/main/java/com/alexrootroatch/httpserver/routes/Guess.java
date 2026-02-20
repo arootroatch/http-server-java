@@ -7,6 +7,7 @@ import com.alexrootroatch.httpserver.Route;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static com.alexrootroatch.httpserver.routes.HttpResponse.sendString;
 
@@ -23,34 +24,27 @@ public class Guess implements Route {
     String method = request.method();
     String sessionId = request.cookieValue("session");
 
-    GameSession.SessionData session = gameSession.getSession(sessionId);
-    boolean isNewGame = method.equals("GET") || sessionId.isEmpty() || session == null;
+    GameSession.SessionData session = (!sessionId.isEmpty()) ? gameSession.getSession(sessionId) : null;
+    boolean isNewGame = method.equals("GET") || session == null;
 
-    Integer guessReceived = null;
-    if (method.equals("POST") && request.body().length > 0) {
-      String body = request.bodyAsString().trim();
-      String[] parts = body.split("=", 2);
-      if (parts.length == 2 && parts[0].equals("guess")) {
-        try {
-          guessReceived = Integer.parseInt(parts[1].trim());
-        } catch (NumberFormatException e) {
-          guessReceived = null;
-        }
-      }
-    }
+    Integer guessReceived = parseGuess(request);
 
-    int numberToGuess;
+    List<String> extraHeaders = new ArrayList<>();
+
     if (isNewGame) {
-      numberToGuess = (int) Math.floor(Math.random() * 100) + 1;
+      int numberToGuess = ThreadLocalRandom.current().nextInt(1, 101);
       sessionId = gameSession.createSession(numberToGuess);
-    } else {
-      numberToGuess = session.number();
+      extraHeaders.add("Set-Cookie: session=" + sessionId + "; HttpOnly");
+      String html = renderGuessHTML(null, numberToGuess, GameSession.MAX_TRIES);
+      sendString(html, "html", outputStream, extraHeaders);
+      return;
     }
 
+    // Existing session — process guess against the snapshot
+    int numberToGuess = session.number();
     int triesLeft;
-    if (isNewGame) {
-      triesLeft = gameSession.getTriesLeft(sessionId);
-    } else if (guessReceived != null && guessReceived == numberToGuess) {
+
+    if (guessReceived != null && guessReceived == numberToGuess) {
       triesLeft = 0;
       gameSession.removeSession(sessionId);
     } else if (guessReceived != null) {
@@ -64,13 +58,21 @@ public class Guess implements Route {
     }
 
     String html = renderGuessHTML(guessReceived, numberToGuess, triesLeft);
-
-    List<String> extraHeaders = new ArrayList<>();
-    if (isNewGame) {
-      extraHeaders.add("Set-Cookie: session=" + sessionId + "; HttpOnly");
-    }
-
     sendString(html, "html", outputStream, extraHeaders);
+  }
+
+  private Integer parseGuess(HttpRequest request) {
+    if (!request.method().equals("POST") || request.body().length == 0) return null;
+    String body = request.bodyAsString().trim();
+    String[] parts = body.split("=", 2);
+    if (parts.length == 2 && parts[0].equals("guess")) {
+      try {
+        return Integer.parseInt(parts[1].trim());
+      } catch (NumberFormatException e) {
+        return null;
+      }
+    }
+    return null;
   }
 
   private String renderGuessHTML(Integer guessReceived, int numberToGuess, int triesLeft) {
