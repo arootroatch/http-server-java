@@ -1,33 +1,22 @@
 package com.alexrootroatch.httpserver;
 
-import com.alexrootroatch.httpserver.ConnectionData;
-import com.alexrootroatch.httpserver.HttpRequest;
 import com.alexrootroatch.httpserver.routes.Folder;
 import com.alexrootroatch.httpserver.routes.Listing;
+import com.alexrootroatch.httpserver.routes.StaticFile;
 import org.junit.jupiter.api.*;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class FilesTest {
 
-  private String serveAndGetBody(String method, String path, String rootDir, com.alexrootroatch.httpserver.Route route) {
-    HttpRequest request = new HttpRequest(method, path, "", Map.of(), new byte[0]);
-    ConnectionData connData = new ConnectionData(request, rootDir);
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    route.serve(connData, out);
-    return out.toString();
-  }
-
   @Test
   void listing() {
-    String response = serveAndGetBody("GET", "/listing", "testroot", new Listing());
-    String body = response.split("\r\n\r\n")[1];
+    String response = TestHelper.serve(new Listing(), TestHelper.get("/listing"));
+    String body = TestHelper.responseBody(response);
 
     assertTrue(body.startsWith("<ul>"));
     assertTrue(body.endsWith("</ul>"));
@@ -38,8 +27,8 @@ public class FilesTest {
 
   @Test
   void listingSlash() {
-    String response = serveAndGetBody("GET", "/listing/", "testroot", new Listing());
-    String body = response.split("\r\n\r\n")[1];
+    String response = TestHelper.serve(new Listing(), TestHelper.get("/listing/"));
+    String body = TestHelper.responseBody(response);
 
     assertTrue(body.startsWith("<ul>"));
     assertTrue(body.endsWith("</ul>"));
@@ -50,8 +39,8 @@ public class FilesTest {
 
   @Test
   void listingImg() {
-    String response = serveAndGetBody("GET", "/listing/img", "testroot", new Listing());
-    String body = response.split("\r\n\r\n")[1];
+    String response = TestHelper.serve(new Listing(), TestHelper.get("/listing/img"));
+    String body = TestHelper.responseBody(response);
 
     assertTrue(body.startsWith("<ul>"));
     assertTrue(body.endsWith("</ul>"));
@@ -63,8 +52,8 @@ public class FilesTest {
 
   @Test
   void img() {
-    String response = serveAndGetBody("GET", "/img", "testroot", new Folder());
-    String body = response.split("\r\n\r\n")[1];
+    String response = TestHelper.serve(new Folder(), TestHelper.get("/img"));
+    String body = TestHelper.responseBody(response);
 
     assertTrue(body.startsWith("<ul>"));
     assertTrue(body.endsWith("</ul>"));
@@ -76,7 +65,7 @@ public class FilesTest {
 
   @Test
   void dirIndex() {
-    String response = serveAndGetBody("GET", "/test-dir", "root", new Folder());
+    String response = TestHelper.serve(new Folder(), TestHelper.get("/test-dir"), "root");
 
     assertTrue(response.contains("<h1>Hello, World!</h1>"));
     assertTrue(response.contains(
@@ -85,13 +74,7 @@ public class FilesTest {
 
   @Test
   void servesHTML() throws IOException {
-    HttpRequest request = new HttpRequest("GET", "/index.html", "", Map.of(), new byte[0]);
-    ConnectionData connData = new ConnectionData(request, "testroot");
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-    new com.alexrootroatch.httpserver.routes.StaticFile().serve(connData, out);
-
-    String response = out.toString();
+    String response = TestHelper.serve(new StaticFile(), TestHelper.get("/index.html"));
     String file = Files.readString(Path.of("testroot/index.html"));
     assertTrue(response.contains(file));
     assertTrue(response.contains("Content-Type: text/html"));
@@ -99,45 +82,27 @@ public class FilesTest {
 
   @Test
   void servesJPG() {
-    HttpRequest request = new HttpRequest("GET", "/img/autobot.jpg", "", Map.of(), new byte[0]);
-    ConnectionData connData = new ConnectionData(request, "testroot");
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-    new com.alexrootroatch.httpserver.routes.StaticFile().serve(connData, out);
-
-    String response = out.toString();
+    String response = TestHelper.serve(new StaticFile(), TestHelper.get("/img/autobot.jpg"));
     assertTrue(response.contains("Content-Type: image/jpeg"));
     assertTrue(response.contains("200 OK"));
   }
 
   @Test
   void servesPNG() {
-    HttpRequest request = new HttpRequest("GET", "/img/decepticon.png", "", Map.of(), new byte[0]);
-    ConnectionData connData = new ConnectionData(request, "testroot");
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-    new com.alexrootroatch.httpserver.routes.StaticFile().serve(connData, out);
-
-    String response = out.toString();
+    String response = TestHelper.serve(new StaticFile(), TestHelper.get("/img/decepticon.png"));
     assertTrue(response.contains("Content-Type: image/png"));
     assertTrue(response.contains("200 OK"));
   }
 
   @Test
   void listingPathTraversal() {
-    String response = serveAndGetBody("GET", "/listing/../../etc", "testroot", new Listing());
+    String response = TestHelper.serve(new Listing(), TestHelper.get("/listing/../../etc"));
     assertTrue(response.contains("404 Not Found"));
   }
 
   @Test
   void servesPDF() {
-    HttpRequest request = new HttpRequest("GET", "/hello.pdf", "", Map.of(), new byte[0]);
-    ConnectionData connData = new ConnectionData(request, "testroot");
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-    new com.alexrootroatch.httpserver.routes.StaticFile().serve(connData, out);
-
-    String response = out.toString();
+    String response = TestHelper.serve(new StaticFile(), TestHelper.get("/hello.pdf"));
     assertTrue(response.contains("Content-Type: application/pdf"));
     assertTrue(response.contains("200 OK"));
   }

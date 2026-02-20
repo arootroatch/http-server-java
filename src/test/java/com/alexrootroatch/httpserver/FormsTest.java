@@ -1,7 +1,5 @@
 package com.alexrootroatch.httpserver;
 
-import com.alexrootroatch.httpserver.ConnectionData;
-import com.alexrootroatch.httpserver.HttpRequest;
 import com.alexrootroatch.httpserver.routes.Form;
 import org.junit.jupiter.api.*;
 
@@ -9,7 +7,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,13 +14,7 @@ public class FormsTest {
 
   @Test
   void form() {
-    HttpRequest request = new HttpRequest("GET", "/form", "", Map.of(), new byte[0]);
-    ConnectionData connData = new ConnectionData(request, "testroot");
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-    new Form().serve(connData, out);
-
-    String response = out.toString();
+    String response = TestHelper.serve(new Form(), TestHelper.get("/form"));
     assertTrue(response.contains("<h2>GET Form</h2>"));
     assertTrue(response.contains("<form method=\"get\" action=\"/form\">"));
     assertTrue(response.contains("<label for=\"foo\">Foo:</label>"));
@@ -40,14 +31,8 @@ public class FormsTest {
 
   @Test
   void formOneParam() {
-    HttpRequest request = new HttpRequest("GET", "/form", "foo=1", Map.of(), new byte[0]);
-    ConnectionData connData = new ConnectionData(request, "testroot");
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-    new Form().serve(connData, out);
-
-    String response = out.toString();
-    String body = response.split("\r\n\r\n")[1];
+    String response = TestHelper.serve(new Form(), TestHelper.getWithQuery("/form", "foo=1"));
+    String body = TestHelper.responseBody(response);
 
     assertTrue(body.startsWith("<html>"));
     assertTrue(response.contains("<h2>GET Form</h2>"));
@@ -57,13 +42,7 @@ public class FormsTest {
 
   @Test
   void formTwoParams() {
-    HttpRequest request = new HttpRequest("GET", "/form", "foo=1&bar=2", Map.of(), new byte[0]);
-    ConnectionData connData = new ConnectionData(request, "testroot");
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-    new Form().serve(connData, out);
-
-    String response = out.toString();
+    String response = TestHelper.serve(new Form(), TestHelper.getWithQuery("/form", "foo=1&bar=2"));
     assertTrue(response.contains("<h2>GET Form</h2>"));
     assertTrue(response.contains("<li>foo: 1</li>"));
     assertTrue(response.contains("<li>bar: 2</li>"));
@@ -81,14 +60,7 @@ public class FormsTest {
     bodyBuilder.write("\r\n------WebKitFormBoundaryz3skuKJCdTzwsajI--\r\n".getBytes());
     byte[] body = bodyBuilder.toByteArray();
 
-    HttpRequest request = new HttpRequest("POST", "/form", "",
-        Map.of("Content-Length", String.valueOf(body.length)), body);
-    ConnectionData connData = new ConnectionData(request, "testroot");
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-    new Form().serve(connData, out);
-
-    String response = out.toString();
+    String response = TestHelper.serve(new Form(), TestHelper.post("/form", body));
 
     assertTrue(response.contains("<h2>POST Form</h2>"));
     assertTrue(response.contains("<li>file name: autobot.jpg</li>"));
@@ -99,13 +71,8 @@ public class FormsTest {
 
   @Test
   void formQueryParamXSS() {
-    HttpRequest request = new HttpRequest("GET", "/form", "x=<script>alert(1)</script>", Map.of(), new byte[0]);
-    ConnectionData connData = new ConnectionData(request, "testroot");
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-    new Form().serve(connData, out);
-
-    String response = out.toString();
+    String response = TestHelper.serve(new Form(),
+        TestHelper.getWithQuery("/form", "x=<script>alert(1)</script>"));
     assertTrue(response.contains("&lt;script&gt;"));
     assertFalse(response.contains("<script>"));
   }
@@ -113,28 +80,13 @@ public class FormsTest {
   @Test
   void postMalformedMultipart() {
     byte[] body = "garbage data not a valid multipart body".getBytes();
-    HttpRequest request = new HttpRequest("POST", "/form", "",
-        Map.of("Content-Length", String.valueOf(body.length)), body);
-    ConnectionData connData = new ConnectionData(request, "testroot");
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-    new Form().serve(connData, out);
-
-    String response = out.toString();
+    String response = TestHelper.serve(new Form(), TestHelper.post("/form", body));
     assertTrue(response.contains("200 OK") || response.contains("Invalid upload"));
   }
 
   @Test
   void postEmptyBody() {
-    byte[] body = new byte[0];
-    HttpRequest request = new HttpRequest("POST", "/form", "",
-        Map.of("Content-Length", "0"), body);
-    ConnectionData connData = new ConnectionData(request, "testroot");
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-    new Form().serve(connData, out);
-
-    String response = out.toString();
+    String response = TestHelper.serve(new Form(), TestHelper.post("/form", new byte[0]));
     assertTrue(response.contains("200 OK") || response.contains("Invalid upload"));
   }
 }
