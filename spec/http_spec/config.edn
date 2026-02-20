@@ -1,5 +1,5 @@
 {
- :cmd "java -cp target/classes myserver.Main"
+ :cmd "java -cp target/classes com.alexrootroatch.httpserver.Main"
  :name "My Server"
  :startup-millis 3000
  :debug? false

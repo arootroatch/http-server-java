@@ -43,7 +43,7 @@ The guessing game demonstrates secure session handling:
 
 - Server-side session store (`GameSession`) backed by `ConcurrentHashMap`
 - UUID-based session IDs sent via `Set-Cookie: session=...; HttpOnly`
-- Game state (tries remaining) tracked with a separate cookie
+- Game state tracked entirely server-side in `SessionData` records
 - No client-side secrets — the target number lives only on the server
 
 ## Prerequisites
@@ -80,13 +80,13 @@ The project has two complementary test suites:
 
 ### Unit Tests (JUnit 5)
 
-Each test constructs an`HttpRequest`, passes it to a handler with a `ByteArrayOutputStream`, and asserts on the raw HTTP response.
+Each test constructs an `HttpRequest`, passes it to a handler with a `ByteArrayOutputStream`, and asserts on the raw HTTP response.
 
 ```bash
 mvn test
 ```
 
-**65 tests** covering: request parsing, path dispatch, path traversal protection, static file serving, directory
+**104 tests** covering: request parsing, URL decoding, path dispatch, path traversal protection, static file serving, directory
 listings, form GET/POST handling, session-based game logic, content-type negotiation, CLI argument parsing, and response
 formatting.
 
@@ -105,11 +105,11 @@ and concurrent request handling.
 
 ### Test Configuration
 
-The integration test suite reads `spec/config.edn` to locate the server binary:
+The integration test suite reads `spec/http_spec/config.edn` to locate the server binary:
 
 ```edn
 {
- :cmd "java -cp target/classes myserver.Main"
+ :cmd "java -cp target/classes com.alexrootroatch.httpserver.Main"
  :name "My Server"
  :startup-millis 3000
  :debug? false
@@ -122,8 +122,8 @@ You can use this server as a dependency in your own project. Add the JAR to your
 interface, and start the server with custom routes:
 
 ```java
-import myserver.MyServer;
-import myserver.Route;
+import com.alexrootroatch.httpserver.MyServer;
+import com.alexrootroatch.httpserver.Route;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -148,18 +148,17 @@ public class MyApiRoute implements Route {
 ## Project Structure
 
 ```
-src/
-  myserver/
+src/main/java/com/alexrootroatch/httpserver/
     Main.java              # Entry point, CLI parsing, route registration
     MyServer.java          # ServerSocket listener, thread-per-request model
-    HttpRequestParser.java # Parses raw HTTP from InputStream
+    HttpRequestParser.java # Parses raw HTTP from InputStream, decodes percent-encoded paths
     HttpRequest.java       # Immutable request record
     ConnectionData.java    # Request + root directory bundle
     RequestDispatcher.java # Route matching, path safety, fallback to File/Folder
     Route.java             # Handler interface
     Print.java             # Help and config output
     routes/
-      File.java            # Static file serving
+      StaticFile.java      # Static file serving
       Folder.java          # Directory index/listing
       Form.java            # GET/POST form handling, multipart parsing
       Guess.java           # Number guessing game
@@ -168,11 +167,13 @@ src/
       Listing.java         # Directory listing with navigation
       Ping.java            # Delayed response for concurrency testing
       DirectoryContents.java # Directory enumeration utility
-      Utils.java           # HTTP response writing, content-type mapping
+      HttpResponse.java    # HTTP response writing (200, 404, 405, 500)
+      ContentType.java     # MIME type mapping
+      HtmlUtil.java        # HTML escaping
 
-spec/
-  myservertests/           # JUnit 5 unit tests
-  http_spec/               # Clojure integration specs
+src/test/java/com/alexrootroatch/httpserver/
+                           # JUnit 5 unit tests
+spec/http_spec/            # Clojure integration specs
 
 testroot/                  # Static files served during tests
 root/                      # Default root directory of the server
@@ -187,7 +188,7 @@ Jupiter for testing. All HTTP parsing, routing, session management, and response
 
 ### Adding a Route
 
-1. Create a class in `src/myserver/routes/` implementing `Route`:
+1. Create a class in `src/main/java/com/alexrootroatch/httpserver/routes/` implementing `Route`:
 
     ```java
     public class MyRoute implements Route {
@@ -200,10 +201,10 @@ Jupiter for testing. All HTTP parsing, routing, session management, and response
 2. Register it in `Main.java`:
 
     ```java
-    setRoute("/myroute", new MyRoute());
+    routes.put("/myroute", new MyRoute());
     ```
 
-3. Add unit tests in `spec/myservertests/` that call `serve()` directly with a `ByteArrayOutputStream`.
+3. Add unit tests in `src/test/java/com/alexrootroatch/httpserver/` that call `serve()` directly with a `ByteArrayOutputStream`.
 
 ### Running the Full Suite
 

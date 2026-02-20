@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>myserver</groupId>
+  <groupId>com.alexrootroatch</groupId>
   <artifactId>http-server-java</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
@@ -24,23 +24,11 @@
   </dependencies>
 
   <build>
-    <sourceDirectory>src</sourceDirectory>
-    <testSourceDirectory>spec</testSourceDirectory>
-
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.13.0</version>
-        <configuration>
-          <excludes>
-            <exclude>**/*.clj</exclude>
-          </excludes>
-          <testExcludes>
-            <testExclude>**/*.clj</testExclude>
-            <testExclude>**/http_spec/**</testExclude>
-          </testExcludes>
-        </configuration>
       </plugin>
 
       <plugin>
@@ -50,7 +38,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>myserver.Main</mainClass>
+              <mainClass>com.alexrootroatch.httpserver.Main</mainClass>
             </manifest>
           </archive>
         </configuration>
