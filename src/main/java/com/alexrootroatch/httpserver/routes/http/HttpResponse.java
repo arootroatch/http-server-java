@@ -72,6 +72,7 @@ public final class HttpResponse {
       outputStream.write(fileBytes);
       outputStream.flush();
     } catch (IOException e) {
+      logger.log(Level.WARNING, "Failed to write response", e);
       throw new RuntimeException(e);
     }
   }
