@@ -13,7 +13,7 @@ public class HttpRequestParser {
 
   public static final int MAX_BODY_SIZE = 10 * 1024 * 1024;
 
-  public static HttpRequest parse(InputStream inputStream) {
+  public static HttpRequest parse(InputStream inputStream) throws MalformedRequestException {
     BufferedInputStream bis = new BufferedInputStream(inputStream);
 
     String requestLine = readLine(bis);
@@ -55,7 +55,10 @@ public class HttpRequestParser {
       try {
         contentLength = Integer.parseInt(contentLengthStr.trim());
       } catch (NumberFormatException e) {
-        return new HttpRequest("", "", "", Map.of(), new byte[0]);
+        throw new MalformedRequestException("Invalid Content-Length: " + contentLengthStr, e);
+      }
+      if (contentLength < 0) {
+        throw new MalformedRequestException("Negative Content-Length: " + contentLength);
       }
       if (contentLength > MAX_BODY_SIZE) {
         return new HttpRequest(method, path, queryString, headers, new byte[0]);

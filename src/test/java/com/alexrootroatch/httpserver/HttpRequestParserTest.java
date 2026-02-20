@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class HttpRequestParserTest {
 
   @Test
-  void parseGetRequest() {
+  void parseGetRequest() throws Exception {
     String raw = "GET /hello HTTP/1.1\r\nHost: localhost\r\n\r\n";
     InputStream is = new ByteArrayInputStream(raw.getBytes());
     HttpRequest request = HttpRequestParser.parse(is);
@@ -24,7 +24,7 @@ public class HttpRequestParserTest {
   }
 
   @Test
-  void parseGetWithQueryString() {
+  void parseGetWithQueryString() throws Exception {
     String raw = "GET /form?foo=1&bar=2 HTTP/1.1\r\n\r\n";
     InputStream is = new ByteArrayInputStream(raw.getBytes());
     HttpRequest request = HttpRequestParser.parse(is);
@@ -34,7 +34,7 @@ public class HttpRequestParserTest {
   }
 
   @Test
-  void parsePostRequest() {
+  void parsePostRequest() throws Exception {
     String raw = "POST /form HTTP/1.1\r\nContent-Length: 7\r\n\r\nhello=1";
     InputStream is = new ByteArrayInputStream(raw.getBytes());
     HttpRequest request = HttpRequestParser.parse(is);
@@ -44,7 +44,7 @@ public class HttpRequestParserTest {
   }
 
   @Test
-  void parseEmptyRequest() {
+  void parseEmptyRequest() throws Exception {
     String raw = "";
     InputStream is = new ByteArrayInputStream(raw.getBytes());
     HttpRequest request = HttpRequestParser.parse(is);
@@ -52,7 +52,7 @@ public class HttpRequestParserTest {
   }
 
   @Test
-  void parseCookies() {
+  void parseCookies() throws Exception {
     String raw = "GET /guess HTTP/1.1\r\nCookie: session=abc123; tries-left=5\r\n\r\n";
     InputStream is = new ByteArrayInputStream(raw.getBytes());
     HttpRequest request = HttpRequestParser.parse(is);
@@ -61,7 +61,7 @@ public class HttpRequestParserTest {
   }
 
   @Test
-  void parseMultipleHeaders() {
+  void parseMultipleHeaders() throws Exception {
     String raw = "GET / HTTP/1.1\r\nHost: localhost\r\nAccept: text/html\r\nConnection: keep-alive\r\n\r\n";
     InputStream is = new ByteArrayInputStream(raw.getBytes());
     HttpRequest request = HttpRequestParser.parse(is);
@@ -71,7 +71,7 @@ public class HttpRequestParserTest {
   }
 
   @Test
-  void missingCookieReturnsEmpty() {
+  void missingCookieReturnsEmpty() throws Exception {
     String raw = "GET / HTTP/1.1\r\n\r\n";
     InputStream is = new ByteArrayInputStream(raw.getBytes());
     HttpRequest request = HttpRequestParser.parse(is);
@@ -79,7 +79,7 @@ public class HttpRequestParserTest {
   }
 
   @Test
-  void parseRequestWithBareCarriageReturn() {
+  void parseRequestWithBareCarriageReturn() throws Exception {
     String raw = "GET /hello HTTP/1.1\r\rHost: localhost\r\n\r\n";
     InputStream is = new ByteArrayInputStream(raw.getBytes());
     HttpRequest request = HttpRequestParser.parse(is);
@@ -88,7 +88,7 @@ public class HttpRequestParserTest {
   }
 
   @Test
-  void parseRequestWithLFOnly() {
+  void parseRequestWithLFOnly() throws Exception {
     String raw = "GET /hello HTTP/1.1\nHost: localhost\n\n";
     InputStream is = new ByteArrayInputStream(raw.getBytes());
     HttpRequest request = HttpRequestParser.parse(is);
@@ -98,7 +98,7 @@ public class HttpRequestParserTest {
   }
 
   @Test
-  void rejectsOversizedContentLength() {
+  void rejectsOversizedContentLength() throws Exception {
     String raw = "POST /upload HTTP/1.1\r\nContent-Length: 20000000\r\n\r\n";
     InputStream is = new ByteArrayInputStream(raw.getBytes());
     HttpRequest request = HttpRequestParser.parse(is);
@@ -106,23 +106,25 @@ public class HttpRequestParserTest {
   }
 
   @Test
-  void invalidContentLength() {
+  void throwsOnInvalidContentLength() {
     String raw = "POST /form HTTP/1.1\r\nContent-Length: abc\r\n\r\n";
     InputStream is = new ByteArrayInputStream(raw.getBytes());
-    HttpRequest request = HttpRequestParser.parse(is);
-    assertEquals("", request.method());
+    MalformedRequestException ex = assertThrows(MalformedRequestException.class,
+        () -> HttpRequestParser.parse(is));
+    assertTrue(ex.getMessage().contains("Invalid Content-Length"));
   }
 
   @Test
-  void negativeContentLength() {
-    String raw = "POST /form HTTP/1.1\r\nContent-Length: -1\r\n\r\n";
+  void throwsOnNegativeContentLength() {
+    String raw = "POST /form HTTP/1.1\r\nContent-Length: -5\r\n\r\n";
     InputStream is = new ByteArrayInputStream(raw.getBytes());
-    HttpRequest request = HttpRequestParser.parse(is);
-    assertEquals(0, request.body().length);
+    MalformedRequestException ex = assertThrows(MalformedRequestException.class,
+        () -> HttpRequestParser.parse(is));
+    assertTrue(ex.getMessage().contains("Negative Content-Length"));
   }
 
   @Test
-  void parseGetWithEncodedPath() {
+  void parseGetWithEncodedPath() throws Exception {
     String raw = "GET /hello%20world HTTP/1.1\r\n\r\n";
     HttpRequest request = HttpRequestParser.parse(new ByteArrayInputStream(raw.getBytes()));
     assertEquals("/hello world", request.path());

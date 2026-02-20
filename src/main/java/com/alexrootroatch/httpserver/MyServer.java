@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.alexrootroatch.httpserver.Print.printConfig;
 import static com.alexrootroatch.httpserver.routes.HttpResponse.send500;
+import static com.alexrootroatch.httpserver.routes.HttpResponse.sendError;
 
 public class MyServer {
   private ServerSocket serverSocket;
@@ -79,6 +80,8 @@ public class MyServer {
         try {
           HttpRequest request = HttpRequestParser.parse(client.getInputStream());
           dispatcher.dispatch(request, outputStream);
+        } catch (MalformedRequestException e) {
+          sendError(400, "Bad Request", outputStream);
         } catch (Exception e) {
           send500(outputStream);
         }
